@@ -294,9 +294,67 @@ class KBCToolsMVizController extends Controller
         // Database
         $db = "KBC_" . $organism;
 
+        $accession = $request->accession_2;
+        $copy_number_2 = $request->copy_number_2;
+        $cnv_data_option = $request->cnv_data_option_2;
+
+        // Convert copy number string to array
+        if (is_string($copy_number_2)) {
+            $copy_number_arr = preg_split("/[;, \n]+/", $copy_number_2);
+            for ($i = 0; $i < count($copy_number_arr); $i++) {
+                $copy_number_arr[$i] = trim($copy_number_arr[$i]);
+            }
+        } elseif (is_array($copy_number_2)) {
+            $copy_number_arr = $copy_number_2;
+            for ($i = 0; $i < count($copy_number_arr); $i++) {
+                $copy_number_arr[$i] = trim($copy_number_arr[$i]);
+            }
+        }
+
+        // Table names
+        if ($organism == "Osativa") {
+            $table_name = "mViz_Rice_Nipponbare_GFF";
+            if ($cnv_data_option == "Consensus_Regions") {
+                $cnv_table_name = "mViz_Rice_Nipponbare_CNVR";
+            } elseif ($cnv_data_option == "Individual_Hits") {
+                $cnv_table_name = "mViz_Rice_Nipponbare_CNVS";
+            }
+        } elseif ($organism == "Athaliana") {
+            $table_name = "mViz_Arabidopsis_GFF";
+            if ($cnv_data_option == "Consensus_Regions") {
+                $cnv_table_name = "mViz_Arabidopsis_CNVR";
+            } elseif ($cnv_data_option == "Individual_Hits") {
+                $cnv_table_name = "mViz_Arabidopsis_CNVS";
+            }
+        } elseif ($organism == "Zmays") {
+            $table_name = "mViz_Maize_GFF";
+            if ($cnv_data_option == "Consensus_Regions") {
+                $cnv_table_name = "mViz_Maize_CNVR";
+            } elseif ($cnv_data_option == "Individual_Hits") {
+                $cnv_table_name = "mViz_Maize_CNVS";
+            }
+        }
+
+        // Get CNV data
+        $query_str = "SELECT CNV.Chromosome, CNV.Start, CNV.End, CNV.Width, CNV.Strand, CNV.Accession, CNV.CN ";
+        $query_str = $query_str . "FROM " . $db . "." . $cnv_table_name . " AS CNV ";
+        $query_str = $query_str . "WHERE (CNV.Accession = '" . $accession . "') AND (CNV.CN IN ('";
+        for ($i = 0; $i < count($copy_number_arr); $i++) {
+            if($i < (count($copy_number_arr)-1)){
+                $query_str = $query_str . trim($copy_number_arr[$i]) . "', '";
+            } elseif ($i == (count($copy_number_arr)-1)) {
+                $query_str = $query_str . trim($copy_number_arr[$i]);
+            }
+        }
+        $query_str = $query_str . "')) ";
+        $query_str = $query_str . "ORDER BY CNV.CN, CNV.Chromosome, CNV.Start, CNV.End; ";
+
+        $cnv_result_arr = DB::connection($db)->select($query_str);
+
         // Package variables that need to go to the view
         $info = [
             'organism' => $organism,
+            'cnv_result_arr' => $cnv_result_arr,
         ];
 
         // Return to view
@@ -308,9 +366,85 @@ class KBCToolsMVizController extends Controller
         // Database
         $db = "KBC_" . $organism;
 
+        $chromosome = $request->chromosome_2;
+        $position_start = $request->position_start_2;
+        $position_end = $request->position_end_2;
+        $cnv_data_option = $request->cnv_data_option_2;
+
+        $chromosome = trim($chromosome);
+        $position_start = intval(trim($position_start))-1;
+        $position_end = intval(trim($position_end))+1;
+        $cnv_data_option = trim($cnv_data_option);
+
+        // Table names
+        if ($organism == "Osativa") {
+            $table_name = "mViz_Rice_Nipponbare_GFF";
+            if ($cnv_data_option == "Consensus_Regions") {
+                $cnv_table_name = "mViz_Rice_Nipponbare_CNVR";
+            } elseif ($cnv_data_option == "Individual_Hits") {
+                $cnv_table_name = "mViz_Rice_Nipponbare_CNVS";
+            }
+        } elseif ($organism == "Athaliana") {
+            $table_name = "mViz_Arabidopsis_GFF";
+            if ($cnv_data_option == "Consensus_Regions") {
+                $cnv_table_name = "mViz_Arabidopsis_CNVR";
+            } elseif ($cnv_data_option == "Individual_Hits") {
+                $cnv_table_name = "mViz_Arabidopsis_CNVS";
+            }
+        } elseif ($organism == "Zmays") {
+            $table_name = "mViz_Maize_GFF";
+            if ($cnv_data_option == "Consensus_Regions") {
+                $cnv_table_name = "mViz_Maize_CNVR";
+            } elseif ($cnv_data_option == "Individual_Hits") {
+                $cnv_table_name = "mViz_Maize_CNVS";
+            }
+        }
+
+        $query_str = "SELECT CNV.Chromosome, CNV.Start, CNV.End, CNV.Width, CNV.Strand, ";
+        $query_str = $query_str . "COUNT(IF(CNV.CN = 'CN0', 1, null)) AS CN0, ";
+        $query_str = $query_str . "COUNT(IF(CNV.CN = 'CN1', 1, null)) AS CN1, ";
+        if ($cnv_data_option == "Consensus_Regions") {
+            $query_str = $query_str . "COUNT(IF(CNV.CN = 'CN2', 1, null)) AS CN2, ";
+        }
+        $query_str = $query_str . "COUNT(IF(CNV.CN = 'CN3', 1, null)) AS CN3, ";
+        $query_str = $query_str . "COUNT(IF(CNV.CN = 'CN4', 1, null)) AS CN4, ";
+        $query_str = $query_str . "COUNT(IF(CNV.CN = 'CN5', 1, null)) AS CN5, ";
+        $query_str = $query_str . "COUNT(IF(CNV.CN = 'CN6', 1, null)) AS CN6, ";
+        $query_str = $query_str . "COUNT(IF(CNV.CN = 'CN7', 1, null)) AS CN7, ";
+        $query_str = $query_str . "COUNT(IF(CNV.CN = 'CN8', 1, null)) AS CN8 ";
+        $query_str = $query_str . "FROM " . $db . "." . $cnv_table_name . " AS CNV ";
+        $query_str = $query_str . "WHERE (CNV.Chromosome = '" . $chromosome . "') ";
+        $query_str = $query_str . "AND (CNV.Start BETWEEN " . $position_start . " AND " . $position_end . ") ";
+        $query_str = $query_str . "AND (CNV.End BETWEEN " . $position_start . " AND " . $position_end . ") ";
+        $query_str = $query_str . "GROUP BY CNV.Chromosome, CNV.Start, CNV.End, CNV.Width, CNV.Strand ";
+        $query_str = $query_str . "ORDER BY CNV.Chromosome, CNV.Start, CNV.End; ";
+
+        $cnv_accession_count_result_arr = DB::connection($db)->select($query_str);
+
+        if (isset($cnv_accession_count_result_arr) && is_array($cnv_accession_count_result_arr) && !empty($cnv_accession_count_result_arr)) {
+            $cnv_result_arr = array();
+            for ($i = 0; $i < count($cnv_accession_count_result_arr); $i++) {
+                // Get CNV data
+                $query_str = "SELECT CNV.Chromosome, CNV.Start, CNV.End, CNV.Width, CNV.Strand, CNV.Accession, CNV.CN ";
+                $query_str = $query_str . "FROM " . $db . "." . $cnv_table_name . " AS CNV ";
+                $query_str = $query_str . "WHERE (CNV.Chromosome = '" . $cnv_accession_count_result_arr[$i]->Chromosome . "') ";
+                $query_str = $query_str . "AND (CNV.Start BETWEEN " . $cnv_accession_count_result_arr[$i]->Start . " AND " . $cnv_accession_count_result_arr[$i]->End . ") ";
+                $query_str = $query_str . "AND (CNV.End BETWEEN " . $cnv_accession_count_result_arr[$i]->Start . " AND " . $cnv_accession_count_result_arr[$i]->End . ") ";
+                $query_str = $query_str . "ORDER BY CNV.CN, CNV.Accession; ";
+
+                $result_arr = DB::connection($db)->select($query_str);
+
+                array_push($cnv_result_arr, $result_arr);
+            }
+        } else {
+            $cnv_result_arr = NULL;
+        }
+
         // Package variables that need to go to the view
         $info = [
             'organism' => $organism,
+            'cnv_accession_count_result_arr' => $cnv_accession_count_result_arr,
+            'cnv_result_arr' => $cnv_result_arr,
         ];
 
         // Return to view
