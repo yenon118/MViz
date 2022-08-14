@@ -111,7 +111,7 @@ $cnvr_array = $info['cnvr_array'];
                     @endforeach
                     )
                 </span>
-                <input type="text" id="chromosome_2" name="chromosome_2" size="60">
+                <input type="text" id="chromosome_2" name="chromosome_2" size="40">
                 <br /><br />
                 <label for="position_start_2"><b>Starting Position:</b></label>
                 <span style="font-size:10pt">
@@ -121,7 +121,7 @@ $cnvr_array = $info['cnvr_array'];
                     @endforeach
                     )
                 </span>
-                <input type="text" id="position_start_2" name="position_start_2" size="60">
+                <input type="text" id="position_start_2" name="position_start_2" size="40">
                 <br /><br />
                 <label for="position_end_2"><b>Ending Position:</b></label>
                 <span style="font-size:10pt">
@@ -131,7 +131,7 @@ $cnvr_array = $info['cnvr_array'];
                     @endforeach
                     )
                 </span>
-                <input type="text" id="position_end_2" name="position_end_2" size="60">
+                <input type="text" id="position_end_2" name="position_end_2" size="40">
                 <br /><br />
                 <label for="cnv_data_option_2"><b>Data Option:</b></label>
                 <select name="cnv_data_option_2" id="cnv_data_option_2">

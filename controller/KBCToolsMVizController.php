@@ -29,27 +29,37 @@ class KBCToolsMVizController extends Controller
         // Table names
         if ($organism == "Osativa") {
             $table_name = "mViz_Rice_Japonica_Motif";
+            $cnvr_table_name = "mViz_Rice_Nipponbare_CNVR";
+            $gff_table_name = "mViz_Rice_Nipponbare_GFF";
         } elseif ($organism == "Athaliana") {
             $table_name = "mViz_Arabidopsis_Motif";
+            $cnvr_table_name = "mViz_Arabidopsis_CNVR";
+            $gff_table_name = "mViz_Arabidopsis_GFF";
         } elseif ($organism == "Zmays") {
             $table_name = "mViz_Maize_Motif";
+            // $cnvr_table_name = "mViz_Maize_CNVR";
+            // $gff_table_name = "mViz_Maize_GFF";
         }
 
-        if (isset($table_name)) {
+        if (isset($table_name) && isset($cnvr_table_name) && isset($gff_table_name)) {
             // Query gene from database
-            $sql = "SELECT DISTINCT Gene FROM " . $db . "." . $table_name . " WHERE Gene IS NOT NULL ORDER BY Gene LIMIT 3;";
+            $sql = "SELECT DISTINCT M.Gene ";
+            $sql = $sql . "FROM " . $db . "." . $gff_table_name . " AS GFF ";
+            $sql = $sql . "INNER JOIN " . $db . "." . $table_name . " AS M ";
+            $sql = $sql . "ON M.Gene = GFF.Name ";
+            $sql = $sql . "INNER JOIN " . $db . "." . $cnvr_table_name . " AS CNVR ";
+            $sql = $sql . "ON CNVR.Chromosome = GFF.Chromosome AND CNVR.Start < GFF.Start AND CNVR.End > GFF.End ";
+            $sql = $sql . "LIMIT 3;";
+            
             $gene_array = DB::connection($db)->select($sql);
         }
 
         // Get one CNVR result
-        if ($organism == "Osativa") {
-            $cnvr_table_name = "mViz_Rice_Nipponbare_CNVR";
-
+        if ($organism == "Osativa" || $organism == "Athaliana") {
             // Query chromosme, region, and accession from database
             $sql = "SELECT * FROM " . $db . "." . $cnvr_table_name . " LIMIT 1;";
             $cnvr_array = DB::connection($db)->select($sql);
         }
-
 
         if (isset($table_name) && isset($gene_array) && isset($cnvr_table_name) && isset($cnvr_array)) {
             // Package variables that need to go to the view
@@ -111,8 +121,14 @@ class KBCToolsMVizController extends Controller
             $tf_table_name = "mViz_Rice_Japonica_TF";
         } elseif ($organism == "Athaliana") {
             $table_name = "mViz_Arabidopsis_GFF";
+            $motif_table_name = "mViz_Arabidopsis_Motif";
+            $motif_sequence_table_name = "mViz_Arabidopsis_Motif_Sequence";
+            $tf_table_name = "mViz_Arabidopsis_TF";
         } elseif ($organism == "Zmays") {
             $table_name = "mViz_Maize_GFF";
+            // $motif_table_name = "mViz_Maize_Motif";
+            // $motif_sequence_table_name = "mViz_Maize_Motif_Sequence";
+            // $tf_table_name = "mViz_Maize_TF";
         }
 
         $query_str = "SELECT * FROM " . $db . "." . $table_name . " WHERE (Name IN ('";
