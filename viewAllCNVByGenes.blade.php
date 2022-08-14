@@ -2,6 +2,7 @@
 include resource_path() . '/views/system/config.blade.php';
 
 $organism = $info['organism'];
+$cnv_data_option = $info['cnv_data_option'];
 $gene_result_arr = $info['gene_result_arr'];
 $cnv_result_arr = $info['cnv_result_arr'];
 
@@ -86,8 +87,12 @@ $cnv_result_arr = $info['cnv_result_arr'];
                     echo "<td style=\"border:1px solid black; min-width:80px;\">" . $value . "</td>";
                 }
             }
+            echo "<td>";
+            echo "<a href=\"" . route('system.tools.MViz.viewCNVAndPhenotype', ['organism'=>$organism, 'Chromosome'=>$cnv_result_arr[$i]->Chromosome, 'Position_Start'=>$cnv_result_arr[$i]->Start, 'Position_End'=>$cnv_result_arr[$i]->End, 'CNV_Data_Option'=>$cnv_data_option]) . "\" target=\"_blank\">";
+            echo "<button>View Details</button>";
+            echo "</a>";
+            echo "</td>";
             echo "</tr>";
-
         }
 
         echo "</table>";

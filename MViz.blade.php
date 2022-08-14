@@ -64,7 +64,7 @@ $cnvr_array = $info['cnvr_array'];
                 <label for="cnv_data_option_2"><b>Data Option:</b></label>
                 <select name="cnv_data_option_2" id="cnv_data_option_2">
                     <option value="Individual_Hits">Individual Hits</option>
-                    <option value="Consensus_Regions" selected="">Consensus Regions</option>
+                    <option value="Consensus_Regions" selected>Consensus Regions</option>
                 </select>
                 <br /><br />
                 <input type="submit" value="Search">
@@ -92,7 +92,7 @@ $cnvr_array = $info['cnvr_array'];
                 <label for="cnv_data_option_2"><b>Data Option:</b></label>
                 <select name="cnv_data_option_2" id="cnv_data_option_2">
                     <option value="Individual_Hits">Individual Hits</option>
-                    <option value="Consensus_Regions" selected="">Consensus Regions</option>
+                    <option value="Consensus_Regions" selected>Consensus Regions</option>
                 </select>
                 <br /><br />
                 <input type="submit" value="Search">
@@ -136,7 +136,7 @@ $cnvr_array = $info['cnvr_array'];
                 <label for="cnv_data_option_2"><b>Data Option:</b></label>
                 <select name="cnv_data_option_2" id="cnv_data_option_2">
                     <option value="Individual_Hits">Individual Hits</option>
-                    <option value="Consensus_Regions" selected="">Consensus Regions</option>
+                    <option value="Consensus_Regions" selected>Consensus Regions</option>
                 </select>
                 <br /><br />
                 <input type="submit" value="Search">
