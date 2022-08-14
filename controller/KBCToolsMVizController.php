@@ -483,6 +483,7 @@ class KBCToolsMVizController extends Controller
         // Package variables that need to go to the view
         $info = [
             'organism' => $organism,
+            'accession' => $accession,
             'cnv_result_arr' => $cnv_result_arr,
         ];
 

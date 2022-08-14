@@ -2,6 +2,7 @@
 include resource_path() . '/views/system/config.blade.php';
 
 $organism = $info['organism'];
+$accession = $info['accession'];
 $cnv_result_arr = $info['cnv_result_arr'];
 
 @endphp
@@ -22,7 +23,7 @@ $cnv_result_arr = $info['cnv_result_arr'];
     <br />
     <br />
 
-    <h3><b>CNV regions and CNs of accession PI_479752:</b></h3>
+    <h3><b>CNV regions and CNs of accession {{ $accession }}:</b></h3>
 
     @php
     if (isset($cnv_result_arr) && is_array($cnv_result_arr) && !empty($cnv_result_arr) && !is_null($cnv_result_arr)) {
