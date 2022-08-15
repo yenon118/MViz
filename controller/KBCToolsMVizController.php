@@ -156,7 +156,7 @@ class KBCToolsMVizController extends Controller
         // Get motifs
         for ($i = 0; $i < count($result_arr); $i++) {
             $query_str = "
-            SELECT MS.Chromosome, MS.Start, MS.End, MS.Strand, MS.Name AS Motif, TF.TF_Family, MS.Sequence, M.Gene FROM (
+            SELECT M.Gene, MS.Chromosome, MS.Start, MS.End, MS.Strand, MS.Name AS TF, TF.TF_Family, MS.Sequence AS Consensus_Sequence FROM (
                 SELECT Motif, Gene FROM " . $db . "." . $motif_table_name . " WHERE Gene = '" . $result_arr[$i]->Name . "'
             ) AS M
             INNER JOIN (

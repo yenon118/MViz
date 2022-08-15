@@ -47,9 +47,9 @@ $result_arr = $info['result_arr'];
                 // Table row
                 echo "<tr bgcolor=\"" . ($j % 2 ? "#FFFFFF" : "#DDFDD") . "\">";
                 foreach ($result_arr[$i]->Motif_Data[$j] as $key => $value) {
-                    if ($key == "Motif") {
+                    if ($key == "TF") {
                         echo "<td style=\"border:1px solid black; min-width:80px;\">";
-                        echo "<a href=\"javascript:void(0);\" onclick=\"getMotifWeblogo('" . $organism . "', '" . $result_arr[$i]->Motif_Data[$j]->Motif . "', '" . $result_arr[$i]->Name . "', '" . $result_arr[$i]->Motif_Data[$j]->Chromosome . "', '" . $result_arr[$i]->Motif_Data[$j]->Start . "', '" . $result_arr[$i]->Motif_Data[$j]->End . "', '" . $result_arr[$i]->Motif_Data[$j]->Sequence . "')\">";
+                        echo "<a href=\"javascript:void(0);\" onclick=\"getMotifWeblogo('" . $organism . "', '" . $value . "', '" . $result_arr[$i]->Name . "', '" . $result_arr[$i]->Motif_Data[$j]->Chromosome . "', '" . $result_arr[$i]->Motif_Data[$j]->Start . "', '" . $result_arr[$i]->Motif_Data[$j]->End . "', '" . $result_arr[$i]->Motif_Data[$j]->Consensus_Sequence . "')\">";
                         echo $value;
                         echo "</a>";
                         echo "</td>";
@@ -98,7 +98,7 @@ function getMotifWeblogo(organism, motif, gene, chromosome, motif_start, motif_e
 
     // Create b tag for motif
     var motif_b = document.createElement("b");
-    motif_b.innerHTML = "Selected Motif: " + motif;
+    motif_b.innerHTML = "Selected TF: " + motif;
     document.getElementById(gene+"_b").appendChild(motif_b);
 
     // Load Ceqlogo / Weblogo image
