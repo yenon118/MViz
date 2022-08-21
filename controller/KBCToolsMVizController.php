@@ -37,8 +37,8 @@ class KBCToolsMVizController extends Controller
             $gff_table_name = "mViz_Arabidopsis_GFF";
         } elseif ($organism == "Zmays") {
             $table_name = "mViz_Maize_Motif";
-            // $cnvr_table_name = "mViz_Maize_CNVR";
-            // $gff_table_name = "mViz_Maize_GFF";
+            $cnvr_table_name = "mViz_Maize_CNVR";
+            $gff_table_name = "mViz_Maize_GFF";
         }
 
         if (isset($table_name) && isset($cnvr_table_name) && isset($gff_table_name)) {
@@ -49,13 +49,16 @@ class KBCToolsMVizController extends Controller
             $sql = $sql . "ON M.Gene = GFF.Name ";
             $sql = $sql . "INNER JOIN " . $db . "." . $cnvr_table_name . " AS CNVR ";
             $sql = $sql . "ON CNVR.Chromosome = GFF.Chromosome AND CNVR.Start < GFF.Start AND CNVR.End > GFF.End ";
+            if ($organism == "Zmays") {
+                $sql = $sql . "WHERE M.Gene LIKE 'GRMZ%' ";
+            }
             $sql = $sql . "LIMIT 3;";
             
             $gene_array = DB::connection($db)->select($sql);
         }
 
         // Get one CNVR result
-        if ($organism == "Osativa" || $organism == "Athaliana") {
+        if ($organism == "Osativa" || $organism == "Athaliana" || $organism == "Zmays") {
             // Query chromosme, region, and accession from database
             $sql = "SELECT * FROM " . $db . "." . $cnvr_table_name . " LIMIT 1;";
             $cnvr_array = DB::connection($db)->select($sql);
@@ -126,9 +129,9 @@ class KBCToolsMVizController extends Controller
             $tf_table_name = "mViz_Arabidopsis_TF";
         } elseif ($organism == "Zmays") {
             $table_name = "mViz_Maize_GFF";
-            // $motif_table_name = "mViz_Maize_Motif";
-            // $motif_sequence_table_name = "mViz_Maize_Motif_Sequence";
-            // $tf_table_name = "mViz_Maize_TF";
+            $motif_table_name = "mViz_Maize_Motif";
+            $motif_sequence_table_name = "mViz_Maize_Motif_Sequence";
+            $tf_table_name = "mViz_Maize_TF";
         }
 
         $query_str = "SELECT * FROM " . $db . "." . $table_name . " WHERE (Name IN ('";
