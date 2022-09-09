@@ -186,6 +186,98 @@ class KBCToolsMVizController extends Controller
         return view('system/tools/MViz/viewPromotersByGenes')->with('info', $info);
     }
 
+    public function QueryGenotypeCount(Request $request, $organism) {
+
+        // Database
+        $db = "KBC_" . $organism;
+
+        $chromosome = $request->Chromosome;
+        $position_start = $request->Start;
+        $position_end = $request->End;
+
+        // Trim string
+        if (is_string($chromosome)) {
+            $chromosome = trim($chromosome);
+        }
+        if (is_string($position_start)) {
+            $position_start = trim($position_start);
+        }
+        if (is_string($position_end)) {
+            $position_end = trim($position_end);
+        }
+
+        // Table names
+        if ($organism == "Osativa") {
+            $table_name = "mViz_Rice_". $chromosome . "_genotype_count";
+        } elseif ($organism == "Athaliana") {
+            $table_name = "mViz_Arabidopsis_". $chromosome . "_genotype_count";
+        } elseif ($organism == "Zmays") {
+            $table_name = "mViz_Maize_". $chromosome . "_genotype_count";
+        }
+
+        // Query string
+        $query_str = "SELECT * ";
+        $query_str = $query_str . "FROM " . $db . "." . $table_name . " ";
+        $query_str = $query_str . "WHERE (Chromosome = '" . $chromosome . "') ";
+        $query_str = $query_str . "AND (Position BETWEEN " . $position_start . " AND " . $position_end . ") ";
+        $query_str = $query_str . "ORDER BY Chromosome, Position;";
+
+        $result_arr = DB::connection($db)->select($query_str);
+
+        return json_encode($result_arr);
+    }
+
+    public function ViewVarientOnSelectedPositionPage(Request $request, $organism) {
+
+        // Database
+        $db = "KBC_" . $organism;
+
+        $chromosome = $request->Chromosome;
+        $position = $request->Position;
+        $genotype = $request->Genotype;
+
+        // Trim string
+        if (is_string($chromosome)) {
+            $chromosome = trim($chromosome);
+        }
+        if (is_string($position)) {
+            $position = trim($position);
+        }
+        if (is_string($genotype)) {
+            $genotype = trim($genotype);
+        }
+
+        // Table names
+        if ($organism == "Osativa") {
+            $table_name = "mViz_Rice_". $chromosome . "_genotype_data";
+        } elseif ($organism == "Athaliana") {
+            $table_name = "mViz_Arabidopsis_". $chromosome . "_genotype_data";
+        } elseif ($organism == "Zmays") {
+            $table_name = "mViz_Maize_". $chromosome . "_genotype_data";
+        }
+
+        // Query string
+        $query_str = "SELECT Chromosome, Position, Accession, Genotype, ";
+        $query_str = $query_str . "CASE Functional_Effect WHEN 'Ref' THEN 'Ref' ELSE 'Alt' END AS Category, ";
+        $query_str = $query_str . "Imputation ";
+        $query_str = $query_str . "FROM " . $db . "." . $table_name . " ";
+        $query_str = $query_str . "WHERE (Chromosome = '" . $chromosome . "') ";
+        $query_str = $query_str . "AND (Position = " . $position . ") ";
+        $query_str = $query_str . "AND (Genotype = '" . $genotype . "') ";
+        $query_str = $query_str . "ORDER BY Chromosome, Position;";
+
+        $result_arr = DB::connection($db)->select($query_str);
+
+        // Package variables that need to go to the view
+        $info = [
+            'organism' => $organism,
+            'result_arr' => $result_arr
+        ];
+
+        // Return to view
+        return view('system/tools/MViz/viewVarientOnSelectedPosition')->with('info', $info);
+    }
+
     public function ViewAllCNVByGenesPage(Request $request, $organism) {
 
         // Database
@@ -592,6 +684,7 @@ class KBCToolsMVizController extends Controller
         // Package variables that need to go to the view
         $info = [
             'organism' => $organism,
+            'cnv_data_option' => $cnv_data_option,
             'cnv_accession_count_result_arr' => $cnv_accession_count_result_arr,
             'cnv_result_arr' => $cnv_result_arr,
         ];

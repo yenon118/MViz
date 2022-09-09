@@ -115,89 +115,113 @@ function getMotifWeblogo(organism, motif, gene, chromosome, motif_start, motif_e
         document.getElementById(gene+"_weblogo").appendChild(weblogo);
     }
 
-    // $.ajax({
-    //     url: 'php/queryChromPosRefAlt.php',
-    //     type: 'GET',
-    //     contentType: 'application/json',
-    //     data: {
-    //         Chromosome: chromosome,
-    //         Start: motif_start,
-    //         End: motif_end
-    //     },
-    //     success: function (response) {
-    //         let res = JSON.parse(response);
-    //         res = res.data;
+    // Create motif sequence table
+    let detail_table = document.createElement("table");
+    detail_table.setAttribute("style", "text-align:center; border:3px solid #000;");
+    let detail_tr_index = document.createElement("tr");
+    let detail_tr_position = document.createElement("tr");
+    let detail_tr_nucleotide = document.createElement("tr");
+    let detail_tr_genotype_count = document.createElement("tr");
 
-    //         // Create a dictionary to store chrom pos ref alt 
-    //         let chrom_pos_ref_alt_dict = {}
-    //         for (let i = 0; i < res.length; i++) {
-    //             chrom_pos_ref_alt_dict[res[i]['Position']] = res[i];
-    //         }
+    for (let i = 0; i < (motif_end-motif_start+1); i++) {
+        var detail_th = document.createElement("th");
+        detail_th.setAttribute("style", "border:1px solid black; min-width:80px; height:18.5px;");
+        detail_th.innerHTML = Number(i)+1;
+        detail_tr_index.appendChild(detail_th);
 
-            // Create motif sequence table
-            let detail_table = document.createElement("table");
-            detail_table.setAttribute("style", "text-align:center; border:3px solid #000;");
-            let detail_tr_index = document.createElement("tr");
-            let detail_tr_position = document.createElement("tr");
-            let detail_tr_nucleotide = document.createElement("tr");
-            // let detail_tr_ref_alt = document.createElement("tr");
+        var detail_th = document.createElement("th");
+        detail_th.setAttribute("style", "border:1px solid black; min-width:80px; height:18.5px;");
+        detail_th.innerHTML = Number(motif_start)+Number(i);
+        detail_tr_position.appendChild(detail_th);
 
-            for (let i = 0; i < (motif_end-motif_start+1); i++) {
-                // var ref_alt = '';
+        var detail_td = document.createElement("td");
+        detail_td.setAttribute("style", "border:1px solid black; min-width:80px; height:18.5px;");
+        detail_td.innerHTML = motif_sequence[i];
+        detail_tr_nucleotide.appendChild(detail_td);
 
-                var detail_th = document.createElement("th");
-                detail_th.setAttribute("style", "border:1px solid black; min-width:80px; height:18.5px;");
-                detail_th.innerHTML = Number(i)+1;
-                detail_tr_index.appendChild(detail_th);
+        var detail_td = document.createElement("td");
+        detail_td.id = "genotype_count_"+(Number(motif_start)+Number(i)).toString();
+        detail_tr_genotype_count.appendChild(detail_td);
+    }
 
-                var detail_th = document.createElement("th");
-                detail_th.setAttribute("style", "border:1px solid black; min-width:80px; height:18.5px;");
-                detail_th.innerHTML = Number(motif_start)+Number(i);
-                detail_tr_position.appendChild(detail_th);
+    detail_table.appendChild(detail_tr_index);
+    detail_table.appendChild(detail_tr_position);
+    detail_table.appendChild(detail_tr_nucleotide);
+    detail_table.appendChild(detail_tr_genotype_count);
 
-                var detail_td = document.createElement("td");
-                detail_td.setAttribute("style", "border:1px solid black; min-width:80px; height:18.5px;");
-                detail_td.innerHTML = motif_sequence[i];
+    document.getElementById(gene+"_detail_table").appendChild(detail_table);
 
-                // if (Object.keys(chrom_pos_ref_alt_dict).includes(String(Number(motif_start)+Number(i)))) {
-                //     let position = String(Number(motif_start)+Number(i));
-                //     let reference_allele = chrom_pos_ref_alt_dict[position]['Reference_Allele'];
-                //     let alternate_allele_array = String(chrom_pos_ref_alt_dict[position]['Alternate_Allele']).split(",");
 
-                //     if (motif_sequence[i] == reference_allele) {
-                //         detail_td.style.backgroundColor = '#9EE85C';
-                //         ref_alt = 'Ref';
-                //     } else if (alternate_allele_array.includes(motif_sequence[i])) {
-                //         detail_td.style.backgroundColor = '#F26A55';
-                //         ref_alt = 'Alt';
-                //     }
-                // }
-                detail_tr_nucleotide.appendChild(detail_td);
+    $.ajax({
+        url: 'queryGenotypeCount/'+organism,
+        type: 'GET',
+        contentType: 'application/json',
+        data: {
+            Organism: organism,
+            Chromosome: chromosome,
+            Start: motif_start,
+            End: motif_end
+        },
+        success: function (response) {
+            let res = JSON.parse(response);
 
-                // var detail_td = document.createElement("td");
-                // detail_td.setAttribute("style", "border:1px solid black; min-width:80px; height:18.5px;");
-                // if (ref_alt == 'Ref') {
-                //     detail_td.innerHTML = 'Reference (Wm82.a2.v1)';
-                // } else if (ref_alt == 'Alt') {
-                //     detail_td.innerHTML = 'Alternate (Wm82.a2.v1)';
-                // } else {
-                //     detail_td.innerHTML = '';
-                // }
-                // ref_alt = ''
-                // detail_tr_ref_alt.appendChild(detail_td);
+            for (let i = 0; i < res.length; i++) {
+                var genotype_count_element = document.getElementById("genotype_count_"+(res[i]['Position']).toString());
+
+                if (genotype_count_element.innerHTML === null || genotype_count_element.innerHTML == '') {
+                    // Construct table with header
+                    genotype_count_element.setAttribute("style", "border:1px solid black; min-width:80px; height:18.5px;");
+                    var genotype_count_table = document.createElement("table");
+                    genotype_count_table.id = "genotype_count_"+(res[i]['Position']).toString()+"_table";
+                    var genotype_count_tr_index = document.createElement("tr");
+                    var detail_th = document.createElement("th");
+                    detail_th.setAttribute("style", "border:1px solid black; min-width:20px; height:18.5px;");
+                    detail_th.innerHTML = "Genotype";
+                    genotype_count_tr_index.appendChild(detail_th);
+                    var detail_th = document.createElement("th");
+                    detail_th.setAttribute("style", "border:1px solid black; min-width:20px; height:18.5px;");
+                    detail_th.innerHTML = "Category";
+                    genotype_count_tr_index.appendChild(detail_th);
+                    var detail_th = document.createElement("th");
+                    detail_th.setAttribute("style", "border:1px solid black; min-width:20px; height:18.5px;");
+                    detail_th.innerHTML = "Count";
+                    genotype_count_tr_index.appendChild(detail_th);
+                    genotype_count_table.appendChild(genotype_count_tr_index);
+                    genotype_count_element.appendChild(genotype_count_table);
+                }
             }
 
-            detail_table.appendChild(detail_tr_index);
-            detail_table.appendChild(detail_tr_position);
-            detail_table.appendChild(detail_tr_nucleotide);
-            // detail_table.appendChild(detail_tr_ref_alt);
+            for (let i = 0; i < res.length; i++) {
+                var genotype_count_element_table = document.getElementById("genotype_count_"+(res[i]['Position']).toString()+"_table");
 
-            document.getElementById(gene+"_detail_table").appendChild(detail_table);
-    //     },
-    //     error: function (xhr, status, error) {
-    //         console.log('Error with code ' + xhr.status + ': ' + xhr.statusText);
-    //     }
-    // });
+                var genotype_count_tr_index = document.createElement("tr");
+                var detail_td = document.createElement("td");
+                detail_td.setAttribute("style", "border:1px solid black; min-width:20px; height:18.5px;");
+                detail_td.innerHTML = res[i]['Genotype'];
+                genotype_count_tr_index.appendChild(detail_td);
+                var detail_td = document.createElement("td");
+                detail_td.setAttribute("style", "border:1px solid black; min-width:20px; height:18.5px;");
+                detail_td.innerHTML = res[i]['Category'];
+                genotype_count_tr_index.appendChild(detail_td);
+                var detail_td = document.createElement("td");
+                detail_td.setAttribute("style", "border:1px solid black; min-width:20px; height:18.5px;");
+                var position_a = document.createElement("a");
+                position_a.href = "../viewVarientOnSelectedPosition/"+organism+"?Chromosome="+res[i]['Chromosome']+"&Position="+res[i]['Position']+"&Genotype="+res[i]['Genotype'];
+                position_a.target = "_blank";
+                position_a.innerHTML = res[i]['Count']
+                detail_td.appendChild(position_a);
+                genotype_count_tr_index.appendChild(detail_td);
+
+                genotype_count_element_table.appendChild(genotype_count_tr_index);
+
+            }
+            
+        },
+        error: function (xhr, status, error) {
+            console.log('Error with code ' + xhr.status + ': ' + xhr.statusText);
+        }
+    });
+
 
     // Change the overflow style of the div to scroll
     document.getElementById(gene+"_b").style.overflow = 'scroll';
