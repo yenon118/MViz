@@ -47,9 +47,9 @@ $result_arr = $info['result_arr'];
                 // Table row
                 echo "<tr bgcolor=\"" . ($j % 2 ? "#FFFFFF" : "#DDFDD") . "\">";
                 foreach ($result_arr[$i]->Motif_Data[$j] as $key => $value) {
-                    if ($key == "TF") {
+                    if ($key == "Binding_TF") {
                         echo "<td style=\"border:1px solid black; min-width:80px;\">";
-                        echo "<a href=\"javascript:void(0);\" onclick=\"getMotifWeblogo('" . $organism . "', '" . $value . "', '" . $result_arr[$i]->Name . "', '" . $result_arr[$i]->Motif_Data[$j]->Chromosome . "', '" . $result_arr[$i]->Motif_Data[$j]->Start . "', '" . $result_arr[$i]->Motif_Data[$j]->End . "', '" . $result_arr[$i]->Motif_Data[$j]->Consensus_Sequence . "')\">";
+                        echo "<a href=\"javascript:void(0);\" onclick=\"getMotifWeblogo('" . $organism . "', '" . $value . "', '" . $result_arr[$i]->Name . "', '" . $result_arr[$i]->Motif_Data[$j]->Chromosome . "', '" . $result_arr[$i]->Motif_Data[$j]->Start . "', '" . $result_arr[$i]->Motif_Data[$j]->End . "', '" . $result_arr[$i]->Motif_Data[$j]->Gene_Binding_Sequence . "')\">";
                         echo $value;
                         echo "</a>";
                         echo "</td>";

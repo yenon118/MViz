@@ -159,7 +159,7 @@ class KBCToolsMVizController extends Controller
         // Get motifs
         for ($i = 0; $i < count($result_arr); $i++) {
             $query_str = "
-            SELECT M.Gene, MS.Chromosome, MS.Start, MS.End, MS.Strand, MS.Name AS TF, TF.TF_Family, MS.Sequence AS Consensus_Sequence FROM (
+            SELECT M.Gene, MS.Chromosome, MS.Start, MS.End, MS.Strand, MS.Name AS Binding_TF, TF.TF_Family, MS.Sequence AS Gene_Binding_Sequence FROM (
                 SELECT Motif, Gene FROM " . $db . "." . $motif_table_name . " WHERE Gene = '" . $result_arr[$i]->Name . "'
             ) AS M
             INNER JOIN (
@@ -220,7 +220,7 @@ class KBCToolsMVizController extends Controller
         $query_str = $query_str . "FROM " . $db . "." . $table_name . " ";
         $query_str = $query_str . "WHERE (Chromosome = '" . $chromosome . "') ";
         $query_str = $query_str . "AND (Position BETWEEN " . $position_start . " AND " . $position_end . ") ";
-        $query_str = $query_str . "ORDER BY Chromosome, Position;";
+        $query_str = $query_str . "ORDER BY Chromosome, Position, Count DESC;";
 
         $result_arr = DB::connection($db)->select($query_str);
 
