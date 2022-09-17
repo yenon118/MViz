@@ -90,8 +90,8 @@ function check_all_cn() {
 }
 
 
-function uncheck_all_phenotypes() {
-    let ids = document.querySelectorAll('input[id^=chemical_descriptor_],input[id^=disease_descriptor_],input[id^=growth_descriptor_],input[id^=insect_descriptor_],input[id^=morphology_descriptor_],input[id^=other_descriptor_],input[id^=phenology_descriptor_],input[id^=qualifier_],input[id^=stress_descriptor_]');
+function uncheck_all_phenotypes(organism) {
+    let ids = document.querySelectorAll('input[id^='+organism+'_phenotype_]');
 
     for (let i = 0; i < ids.length; i++) {
         if (ids[i].checked) {
@@ -101,8 +101,8 @@ function uncheck_all_phenotypes() {
 }
 
 
-function check_all_phenotypes() {
-    let ids = document.querySelectorAll('input[id^=chemical_descriptor_],input[id^=disease_descriptor_],input[id^=growth_descriptor_],input[id^=insect_descriptor_],input[id^=morphology_descriptor_],input[id^=other_descriptor_],input[id^=phenology_descriptor_],input[id^=qualifier_],input[id^=stress_descriptor_]');
+function check_all_phenotypes(organism) {
+    let ids = document.querySelectorAll('input[id^='+organism+'_phenotype_]');
 
     for (let i = 0; i < ids.length; i++) {
         if (!ids[i].checked) {
@@ -112,8 +112,8 @@ function check_all_phenotypes() {
 }
 
 
-function uncheck_all() {
-    let ids = document.querySelectorAll('input[id^=CN],input[id^=chemical_descriptor_],input[id^=disease_descriptor_],input[id^=growth_descriptor_],input[id^=insect_descriptor_],input[id^=morphology_descriptor_],input[id^=other_descriptor_],input[id^=phenology_descriptor_],input[id^=qualifier_],input[id^=stress_descriptor_]');
+function uncheck_all(organism) {
+    let ids = document.querySelectorAll('input[id^=CN],input[id^='+organism+'_phenotype_]');
 
     for (let i = 0; i < ids.length; i++) {
         if (ids[i].checked) {
@@ -123,8 +123,8 @@ function uncheck_all() {
 }
 
 
-function check_all() {
-    let ids = document.querySelectorAll('input[id^=CN],input[id^=chemical_descriptor_],input[id^=disease_descriptor_],input[id^=growth_descriptor_],input[id^=insect_descriptor_],input[id^=morphology_descriptor_],input[id^=other_descriptor_],input[id^=phenology_descriptor_],input[id^=qualifier_],input[id^=stress_descriptor_]');
+function check_all(organism) {
+    let ids = document.querySelectorAll('input[id^=CN],input[id^='+organism+'_phenotype_]');
 
     for (let i = 0; i < ids.length; i++) {
         if (!ids[i].checked) {
@@ -134,7 +134,7 @@ function check_all() {
 }
 
 
-function constructInfoTable(res, chromosome, position_start, position_end, cnv_data_option, cn_array) {
+function constructInfoTable(organism, res, chromosome, position_start, position_end, cnv_data_option, cn_array) {
 
     // Create table
     let detail_table = document.createElement("table");
@@ -155,7 +155,7 @@ function constructInfoTable(res, chromosome, position_start, position_end, cnv_d
             detail_th.setAttribute("style", "border:1px solid black; min-width:80px; height:18.5px;");
             var detail_a = document.createElement('a');
             detail_a.target = "_blank";
-            detail_a.href = "/SoybeanMViz/viewCNVAndPhenotypeFigures.php?chromosome_1=" + chromosome + "&position_start_1=" + position_start + "&position_end_1=" + position_end + "&cnv_data_option_1=" + cnv_data_option + "&phenotype_1=" + header_array[i] +"&cn_1=" + cn_array.join("%0D%0A");;
+            detail_a.href = "../viewCNVAndPhenotypeFigures/"+organism+"?chromosome_1=" + chromosome + "&position_start_1=" + position_start + "&position_end_1=" + position_end + "&width_1=" + res[0]['Width'] + "&strand_1=" + res[0]['Strand'] + "&cnv_data_option_1=" + cnv_data_option + "&phenotype_1=" + header_array[i] +"&cn_1=" + cn_array.join("%0D%0A");;
             detail_a.innerHTML = header_array[i];
             detail_th.appendChild(detail_a);
             detail_header_tr.appendChild(detail_th);
@@ -196,7 +196,7 @@ function qeuryCNVAndPhenotype(organism) {
     let cn_ids = document.querySelectorAll('input[id^=CN]');
     let cn_array = [];
 
-    let phenotype_ids = document.querySelectorAll('input[id^=chemical_descriptor_],input[id^=disease_descriptor_],input[id^=growth_descriptor_],input[id^=insect_descriptor_],input[id^=morphology_descriptor_],input[id^=other_descriptor_],input[id^=phenology_descriptor_],input[id^=qualifier_],input[id^=stress_descriptor_]');
+    let phenotype_ids = document.querySelectorAll('input[id^='+organism+'_phenotype_]');
     let phenotype_array = [];
 
     for (let i = 0; i < cn_ids.length; i++) {
@@ -231,7 +231,7 @@ function qeuryCNVAndPhenotype(organism) {
 
                 if (res.length > 0) {
                     document.getElementById('CNV_and_Phenotye_detail_table').appendChild(
-                        constructInfoTable(res, chromosome_1, position_start_1, position_end_1, cnv_data_option_1, cn_array)
+                        constructInfoTable(organism, res, chromosome_1, position_start_1, position_end_1, cnv_data_option_1, cn_array)
                     );
                     document.getElementById('CNV_and_Phenotye_detail_table').style.overflow = 'scroll';
                 } else {
@@ -266,7 +266,7 @@ function downloadCNVAndPhenotype(organism) {
     let cn_ids = document.querySelectorAll('input[id^=CN]');
     let cn_array = [];
 
-    let phenotype_ids = document.querySelectorAll('input[id^=chemical_descriptor_],input[id^=disease_descriptor_],input[id^=growth_descriptor_],input[id^=insect_descriptor_],input[id^=morphology_descriptor_],input[id^=other_descriptor_],input[id^=phenology_descriptor_],input[id^=qualifier_],input[id^=stress_descriptor_]');
+    let phenotype_ids = document.querySelectorAll('input[id^='+organism+'_phenotype_]');
     let phenotype_array = [];
 
     for (let i = 0; i < cn_ids.length; i++) {

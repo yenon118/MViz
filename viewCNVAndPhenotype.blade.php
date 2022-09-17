@@ -6,6 +6,7 @@ $chromosome = $info['chromosome'];
 $position_start = $info['position_start'];
 $position_end = $info['position_end'];
 $cnv_data_option = $info['cnv_data_option'];
+$phenotype_selection_arr = $info['phenotype_selection_arr'];
 
 @endphp
 
@@ -51,6 +52,16 @@ $cnv_data_option = $info['cnv_data_option'];
         <h3>CN</h3>
         <div id=div_cn_in_accordion>
         </div>
+        @php
+            if(isset($phenotype_selection_arr) && is_array($phenotype_selection_arr) && !empty($phenotype_selection_arr)) {
+                echo "<h3>Phenotype</h3>";
+                echo "<div>";
+                for ($i = 0; $i < count($phenotype_selection_arr); $i++) {
+                    echo "<input type=\"checkbox\" id=\"" . $phenotype_selection_arr[$i]->ID . "\" name=\"" . $phenotype_selection_arr[$i]->ID . "\" value=\"" . $phenotype_selection_arr[$i]->Phenotype . "\"><label for=\"" . $phenotype_selection_arr[$i]->ID . "\" style=\"margin-right:10px;\">" . $phenotype_selection_arr[$i]->Phenotype . "</label>";
+                }
+                echo "</div>";
+            }
+        @endphp
     </div>
 
     <br/>
@@ -59,6 +70,12 @@ $cnv_data_option = $info['cnv_data_option'];
     <div style='margin-top:10px;' align='center'>
     <button onclick="uncheck_all_cn()" style="margin-right:20px;">Uncheck All CNs</button>
     <button onclick="check_all_cn()" style="margin-right:20px;">Check All CNs</button>
+    @php
+    if(isset($phenotype_selection_arr) && is_array($phenotype_selection_arr) && !empty($phenotype_selection_arr)) {
+        echo "<button onclick=\"uncheck_all_phenotypes('" . $organism . "')\" style=\"margin-right:20px;\">Uncheck All Phenotypes</button>";
+        echo "<button onclick=\"check_all_phenotypes('" . $organism . "')\" style=\"margin-right:20px;\">Check All Phenotypes</button>";
+    }
+    @endphp
     <button onclick="qeuryCNVAndPhenotype('{{$organism}}')" style="margin-right:20px;">View Data</button>
     <button onclick="downloadCNVAndPhenotype('{{$organism}}')" style="margin-right:20px;">Download Data</button>
     </div>

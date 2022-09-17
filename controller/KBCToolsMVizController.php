@@ -441,6 +441,7 @@ class KBCToolsMVizController extends Controller
         // Table names
         if ($organism == "Osativa") {
             $table_name = "mViz_Rice_Nipponbare_GFF";
+            $phenotype_table_name = "mViz_Rice_Phenotype_Data";
             if ($cnv_data_option == "Consensus_Regions") {
                 $cnv_table_name = "mViz_Rice_Nipponbare_CNVR";
             } elseif ($cnv_data_option == "Individual_Hits") {
@@ -448,6 +449,7 @@ class KBCToolsMVizController extends Controller
             }
         } elseif ($organism == "Athaliana") {
             $table_name = "mViz_Arabidopsis_GFF";
+            $phenotype_table_name = "mViz_Arabidopsis_Phenotype_Data";
             if ($cnv_data_option == "Consensus_Regions") {
                 $cnv_table_name = "mViz_Arabidopsis_CNVR";
             } elseif ($cnv_data_option == "Individual_Hits") {
@@ -455,6 +457,7 @@ class KBCToolsMVizController extends Controller
             }
         } elseif ($organism == "Zmays") {
             $table_name = "mViz_Maize_GFF";
+            $phenotype_table_name = "mViz_Maize_Phenotype_Data";
             if ($cnv_data_option == "Consensus_Regions") {
                 $cnv_table_name = "mViz_Maize_CNVR";
             } elseif ($cnv_data_option == "Individual_Hits") {
@@ -482,8 +485,8 @@ class KBCToolsMVizController extends Controller
         }
         $query_str = $query_str . "FROM " . $db . "." . $cnv_table_name . " AS CNV ";
         if (isset($phenotype_array) && is_array($phenotype_array) && !empty($phenotype_array)) {
-            $query_str = $query_str . "LEFT JOIN soykb.germplasm AS G ";
-            $query_str = $query_str . "ON AM.GRIN_Accession = G.ACNO ";
+            $query_str = $query_str . "LEFT JOIN " . $db . "." . $phenotype_table_name . " AS G ";
+            $query_str = $query_str . "ON CNV.Accession = G.Accession ";
         }
         $query_str = $query_str . "WHERE (CNV.Chromosome = '" . $chromosome . "') ";
         $query_str = $query_str . "AND (CNV.Start BETWEEN " . $position_start . " AND " . $position_end . ") ";
@@ -516,6 +519,25 @@ class KBCToolsMVizController extends Controller
         $position_end = $request->Position_End;
         $cnv_data_option = $request->CNV_Data_Option;
 
+        // Table names
+        if ($organism == "Osativa") {
+            $phenotype_selection_table_name = "mViz_Rice_Phenotype_Selection";
+        } elseif ($organism == "Athaliana") {
+            $phenotype_selection_table_name = "mViz_Arabidopsis_Phenotype_Selection";
+        } elseif ($organism == "Zmays") {
+            $phenotype_selection_table_name = "mViz_Maize_Phenotype_Selection";
+        }
+
+        // Query string
+        $query_str = "SELECT * FROM " . $db . "." . $phenotype_selection_table_name . ";" ;
+
+        try {
+            $phenotype_selection_arr = DB::connection($db)->select($query_str);
+        } catch (\Exception $e) {
+            $phenotype_selection_arr = array();
+        }
+        
+
         // Package variables that need to go to the view
         $info = [
             'organism' => $organism,
@@ -523,11 +545,153 @@ class KBCToolsMVizController extends Controller
             'position_start' => $position_start,
             'position_end' => $position_end,
             'cnv_data_option' => $cnv_data_option,
+            'phenotype_selection_arr' => $phenotype_selection_arr,
         ];
 
         // Return to view
         return view('system/tools/MViz/viewCNVAndPhenotype')->with('info', $info);
     }
+
+    public function QeuryCNVAndPhenotypeFigures(Request $request, $organism) {
+
+        // Database
+        $db = "KBC_" . $organism;
+
+        $chromosome = $request->Chromosome;
+        $position_start = $request->Start;
+        $position_end = $request->End;
+        $cnv_data_option = $request->Data_Option;
+        $cn = $request->CN;
+        $phenotype = $request->Phenotype;
+
+        // Convert copy number string to array
+        if (is_string($cn)) {
+            $cn_array = preg_split("/[;, \n]+/", $cn);
+            for ($i = 0; $i < count($cn_array); $i++) {
+                $cn_array[$i] = trim($cn_array[$i]);
+            }
+        } elseif (is_array($cn)) {
+            $cn_array = $cn;
+            for ($i = 0; $i < count($cn_array); $i++) {
+                $cn_array[$i] = trim($cn_array[$i]);
+            }
+        }
+
+        // Table names
+        if ($organism == "Osativa") {
+            $table_name = "mViz_Rice_Nipponbare_GFF";
+            $phenotype_table_name = "mViz_Rice_Phenotype_Data";
+            if ($cnv_data_option == "Consensus_Regions") {
+                $cnv_table_name = "mViz_Rice_Nipponbare_CNVR";
+            } elseif ($cnv_data_option == "Individual_Hits") {
+                $cnv_table_name = "mViz_Rice_Nipponbare_CNVS";
+            }
+        } elseif ($organism == "Athaliana") {
+            $table_name = "mViz_Arabidopsis_GFF";
+            $phenotype_table_name = "mViz_Arabidopsis_Phenotype_Data";
+            if ($cnv_data_option == "Consensus_Regions") {
+                $cnv_table_name = "mViz_Arabidopsis_CNVR";
+            } elseif ($cnv_data_option == "Individual_Hits") {
+                $cnv_table_name = "mViz_Arabidopsis_CNVS";
+            }
+        } elseif ($organism == "Zmays") {
+            $table_name = "mViz_Maize_GFF";
+            $phenotype_table_name = "mViz_Maize_Phenotype_Data";
+            if ($cnv_data_option == "Consensus_Regions") {
+                $cnv_table_name = "mViz_Maize_CNVR";
+            } elseif ($cnv_data_option == "Individual_Hits") {
+                $cnv_table_name = "mViz_Maize_CNVS";
+            }
+        }
+
+        $query_str = "SELECT CNV.Chromosome, CNV.Start, CNV.End, CNV.Width, CNV.Strand, CNV.Accession, CNV.CN, ";
+        $query_str = $query_str . "CASE CNV.CN ";
+        $query_str = $query_str . "WHEN 'CN0' THEN 'Loss' ";
+        $query_str = $query_str . "WHEN 'CN1' THEN 'Loss' ";
+        $query_str = $query_str . "WHEN 'CN3' THEN 'Gain' ";
+        $query_str = $query_str . "WHEN 'CN4' THEN 'Gain' ";
+        $query_str = $query_str . "WHEN 'CN5' THEN 'Gain' ";
+        $query_str = $query_str . "WHEN 'CN6' THEN 'Gain' ";
+        $query_str = $query_str . "WHEN 'CN7' THEN 'Gain' ";
+        $query_str = $query_str . "WHEN 'CN8' THEN 'Gain' ";
+        $query_str = $query_str . "ELSE 'Normal' ";
+        $query_str = $query_str . "END as Status, ";
+        $query_str = $query_str . "G." . $phenotype . " ";
+        $query_str = $query_str . "FROM " . $db . "." . $cnv_table_name . " ";
+        $query_str = $query_str . "AS CNV ";
+        $query_str = $query_str . "LEFT JOIN " . $db . "." . $phenotype_table_name . " AS G ";
+        $query_str = $query_str . "ON CNV.Accession = G.Accession ";
+        $query_str = $query_str . "WHERE (CNV.Chromosome = '" . $chromosome . "') ";
+        $query_str = $query_str . "AND (CNV.Start BETWEEN " . $position_start . " AND " . $position_end . ") ";
+        $query_str = $query_str . "AND (CNV.End BETWEEN " . $position_start . " AND " . $position_end . ") ";
+        if (count($cn_array) > 0) {
+            $query_str = $query_str . "AND (CNV.CN IN ('";
+            for ($i = 0; $i < count($cn_array); $i++) {
+                if($i < (count($cn_array)-1)){
+                    $query_str = $query_str . trim($cn_array[$i]) . "', '";
+                } elseif ($i == (count($cn_array)-1)) {
+                    $query_str = $query_str . trim($cn_array[$i]);
+                }
+            }
+            $query_str = $query_str . "')) ";
+        }
+        $query_str = $query_str . "AND (G." . $phenotype . " IS NOT NULL) ";
+        $query_str = $query_str . "AND (G." . $phenotype . " != '') ";
+        $query_str = $query_str . "AND (G." . $phenotype . " != '-') ";
+        $query_str = $query_str . "AND (G." . $phenotype . " != '_') ";
+        $query_str = $query_str . "AND (G." . $phenotype . " != 'NA') ";
+        $query_str = $query_str . "AND (G." . $phenotype . " != 'NA') ";
+        $query_str = $query_str . "ORDER BY CNV.CN, CNV.Chromosome, CNV.Start, CNV.End; ";
+
+        $result_arr = DB::connection($db)->select($query_str);
+
+        return json_encode($result_arr);
+    }
+        
+    public function ViewCNVAndPhenotypeFiguresPage(Request $request, $organism) {
+
+        // Database
+        $db = "KBC_" . $organism;
+
+        $chromosome = $request->chromosome_1;
+        $position_start = $request->position_start_1;
+        $position_end = $request->position_end_1;
+        $width = $request->width_1;
+        $strand = $request->strand_1;
+        $cnv_data_option = $request->cnv_data_option_1;
+        $phenotype = $request->phenotype_1;
+        $cn = $request->cn_1;
+
+        // Convert copy number string to array
+        if (is_string($cn)) {
+            $cn_array = preg_split("/[;, \n]+/", $cn);
+            for ($i = 0; $i < count($cn_array); $i++) {
+                $cn_array[$i] = trim($cn_array[$i]);
+            }
+        } elseif (is_array($cn)) {
+            $cn_array = $cn;
+            for ($i = 0; $i < count($cn_array); $i++) {
+                $cn_array[$i] = trim($cn_array[$i]);
+            }
+        }
+
+        // Package variables that need to go to the view
+        $info = [
+            'organism' => $organism,
+            'chromosome' => $chromosome,
+            'position_start' => $position_start,
+            'position_end' => $position_end,
+            'width' => $width,
+            'strand' => $strand,
+            'cnv_data_option' => $cnv_data_option,
+            'cn_array' => $cn_array,
+            'phenotype' => $phenotype,
+        ];
+
+        // Return to view
+        return view('system/tools/MViz/viewCNVAndPhenotypeFigures')->with('info', $info);
+    }
+    
 
     public function ViewAllCNVByAccessionAndCopyNumbersPage(Request $request, $organism) {
 
