@@ -71,7 +71,8 @@ function plotFigure(jsonObject, title, divID) {
                             x: jsonObject['Data'][keys[i]],
                             type: 'box',
                             name: keys[i],
-                            boxpoints: 'Outliers'
+                            boxpoints: 'Outliers',
+                            boxmean: true
                         })
                     }
                 }
