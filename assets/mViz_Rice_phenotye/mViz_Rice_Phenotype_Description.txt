@@ -1,0 +1,48 @@
+Phenotype	Phenotype_Description
+APCO_REV_POST	Apiculus color at post-harvest
+APCO_REV_REPRO	Apiculus color at reproductive
+AUCO_REV_VEG	Auricle color at vegetative
+AWCO_REV	Awn color
+AWPR_REPRO	Awn presence at reproductive
+BLCO_REV_VEG	Blade color at vegetative
+BLPUB_VEG	Blade pubescence at vegetative
+BLSCO_REV_VEG	Basal leafsheath color at vegetative
+CCO_REV_VEG	Collar color at vegetative - cultivated
+CUAN_REPRO	Culm angle at reproductive
+CUDI_CODE_REPRO	Culm diam. of basal internode at reproductive
+CULT_CODE_REPRO	Culm length at reproductive
+CUNO_CODE_REPRO	Culm number (code) at reproductive - cultivated
+CUST_REPRO	Culm strength at reproductive - cultivated
+ENDO	Endosperm type
+FLA_REPRO	Flag leaf angle at reproductive - cultivated
+INCO_REV_REPRO	Internode color at reproductive - cultivated
+LA	Leaf angle - cultivated
+LIGCO_REV_VEG	Ligule color at vegetative - cultivated
+LIGSH	Ligule shape
+LLT_CODE	Leaf length - cultivated
+LPCO_REV_POST	Lemma and palea color at post-harvest
+LPPUB	Lemma and palea pubescence
+LSEN	Leaf senescence
+NOCO_REV	Node color
+PA_REPRO	Panicle axis at reproductive
+PEX_REPRO	Panicle exsertion at reproductive
+PLT_CODE_POST	Panicle length at post-harvest
+PSH	Panicle shattering
+PTH	Panicle threshability
+PTY	Panicle type
+SCCO_REV	Seed coat color
+SDHT_CODE	Seedling height
+SECOND_BR_REPRO	Secondary branching at reproductive
+SLCO_REV	Sterile lemma color
+SLLT_CODE	Sterile lemma length
+SPKF	Spikelet fertility
+APANTH_REPRO	Lemma_Anthocyanin colouration of area below apiculus
+APSH	Lemma shape of apiculus
+AWCO_LREV	Awn color (Late observation)
+AWDIST	Distribution of awns
+BLANTHPR_VEG	Leaf blade anthocyanin coloration
+BLANTHDI_VEG	Leaf blade distribution of anthocyanin coloration
+BLSCO_ANTH_VEG	Leaf sheath anthocyanin coloration
+FLA_EREPRO	Flagleaf (attitude of blade) - Early observation
+INANTH	Culm internode anthocyanin color
+NOANTH	Culm node of anthocyanin color

@@ -181,6 +181,30 @@ function constructInfoTable(organism, res, chromosome, position_start, position_
 }
 
 
+function queryPhenotypeDescription(organism) {
+    $.ajax({
+        url: 'queryPhenotypeDescription/'+organism,
+        type: 'GET',
+        contentType: 'application/json',
+        data: {
+            Organism: organism
+        },
+        success: function (response) {
+            res = JSON.parse(response);
+
+            if (res.length > 0) {
+                let csvString = convertJsonToCsv(res);
+                createAndDownloadCsvFile(csvString, String(organism) + "_phenotype_description");
+            }
+
+        },
+        error: function (xhr, status, error) {
+            console.log('Error with code ' + xhr.status + ': ' + xhr.statusText);
+        }
+    });
+}
+
+
 function qeuryCNVAndPhenotype(organism) {
 
     // Clear data appended to the div tags, if there is any
@@ -280,7 +304,6 @@ function downloadCNVAndPhenotype(organism) {
             phenotype_array.push(phenotype_ids[i].value);
         }
     }
-
 
     if (chromosome_1 && position_start_1 && position_end_1 && cn_array.length > 0) {
         $.ajax({

@@ -400,6 +400,30 @@ class KBCToolsMVizController extends Controller
         return view('system/tools/MViz/viewAllCNVByGenes')->with('info', $info);
     }
 
+
+    public function QueryPhenotypeDescription(Request $request, $organism) {
+
+        // Database
+        $db = "KBC_" . $organism;
+
+        // Table names
+        if ($organism == "Osativa") {
+            $table_name = "mViz_Rice_Phenotype_Selection";
+        } elseif ($organism == "Athaliana") {
+            $table_name = "mViz_Arabidopsis_Phenotype_Selection";
+        } elseif ($organism == "Zmays") {
+            $table_name = "mViz_Maize_Phenotype_Selection";
+        }
+
+        // Query string
+        $query_str = "SELECT Phenotype, Phenotype_Description FROM " . $db . "." . $table_name . ";";
+
+        $result_arr = DB::connection($db)->select($query_str);
+
+        return json_encode($result_arr);
+    }
+    
+
     public function QeuryCNVAndPhenotype(Request $request, $organism) {
 
         // Database

@@ -6,6 +6,7 @@ Route::get('/system/tools/MViz/viewVarientOnSelectedPosition/{organism}', 'Syste
 Route::get('/system/tools/MViz/viewAllCNVByGenes/{organism}', 'System\Tools\KBCToolsMVizController@ViewAllCNVByGenesPage')->name('system.tools.MViz.viewAllCNVByGenes');
 Route::get('/system/tools/MViz/viewCNVAndPhenotype/{organism}', 'System\Tools\KBCToolsMVizController@ViewCNVAndPhenotypePage')->name('system.tools.MViz.viewCNVAndPhenotype');
 Route::get('/system/tools/MViz/viewCNVAndPhenotype/qeuryCNVAndPhenotype/{organism}', 'System\Tools\KBCToolsMVizController@QeuryCNVAndPhenotype')->name('system.tools.MViz.viewCNVAndPhenotype.qeuryCNVAndPhenotype');
+Route::get('/system/tools/MViz/viewCNVAndPhenotype/queryPhenotypeDescription/{organism}', 'System\Tools\KBCToolsMVizController@QueryPhenotypeDescription')->name('system.tools.MViz.viewCNVAndPhenotype.queryPhenotypeDescription');
 Route::get('/system/tools/MViz/viewCNVAndPhenotypeFigures/{organism}', 'System\Tools\KBCToolsMVizController@ViewCNVAndPhenotypeFiguresPage')->name('system.tools.MViz.viewCNVAndPhenotypeFigures');
 Route::get('/system/tools/MViz/viewCNVAndPhenotypeFigures/qeuryCNVAndPhenotypeFigures/{organism}', 'System\Tools\KBCToolsMVizController@QeuryCNVAndPhenotypeFigures')->name('system.tools.MViz.viewCNVAndPhenotypeFigures.qeuryCNVAndPhenotypeFigures');
 Route::get('/system/tools/MViz/viewAllCNVByAccessionAndCopyNumbers/{organism}', 'System\Tools\KBCToolsMVizController@ViewAllCNVByAccessionAndCopyNumbersPage')->name('system.tools.MViz.viewAllCNVByAccessionAndCopyNumbers');

@@ -74,6 +74,7 @@ $phenotype_selection_arr = $info['phenotype_selection_arr'];
     if(isset($phenotype_selection_arr) && is_array($phenotype_selection_arr) && !empty($phenotype_selection_arr)) {
         echo "<button onclick=\"uncheck_all_phenotypes('" . $organism . "')\" style=\"margin-right:20px;\">Uncheck All Phenotypes</button>";
         echo "<button onclick=\"check_all_phenotypes('" . $organism . "')\" style=\"margin-right:20px;\">Check All Phenotypes</button>";
+        echo "<button onclick=\"queryPhenotypeDescription('" . $organism . "')\" style=\"margin-right:20px;\">Download Phenotype Description</button>";
     }
     @endphp
     <button onclick="qeuryCNVAndPhenotype('{{$organism}}')" style="margin-right:20px;">View Data</button>
