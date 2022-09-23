@@ -29,6 +29,7 @@ function collectDataForFigure(jsonObject, phenotype, selectedKey) {
 
     var dict = {};
     var isFloat = true;
+    const specialChars = /[`!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
 
     for (let i = 0; i < jsonObject.length; i++) {
         var val = jsonObject[i][phenotype];
@@ -38,7 +39,11 @@ function collectDataForFigure(jsonObject, phenotype, selectedKey) {
         }
         // Parse value to float if possible
         if (!isNaN(parseFloat(val))){
-            val = parseFloat(val)
+            if (!specialChars.test(val)){
+                val = parseFloat(val)
+            } else {
+                isFloat = false
+            }
         } else {
             isFloat = false
         }
@@ -48,7 +53,6 @@ function collectDataForFigure(jsonObject, phenotype, selectedKey) {
         } else {
             dict[jsonObject[i][selectedKey]].push(val);
         }
-
     }
 
     return {'Data':dict, 'IsFloat':isFloat};
