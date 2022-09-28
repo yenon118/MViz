@@ -1,21 +1,23 @@
 function processQueriedData(jsonObject, phenotype) {
 
     for (let i = 0; i < jsonObject.length; i++) {
-        if (jsonObject[i][phenotype].includes(',')) {
-            var element = jsonObject[i];
-            var phenotype_array = element[phenotype].split(",");
-            // Remove duplicates
-            var unique_phenotype_array = phenotype_array.filter(function(c, index) {
-                return phenotype_array.indexOf(c) === index;
-            });
-            // Add new records to the array
-            for (let j = 0; j < unique_phenotype_array.length; j++) {
-                if (j === 0) {
-                    element[phenotype] = unique_phenotype_array[j];
-                } else {
-                    var new_element = JSON.parse(JSON.stringify(element));
-                    new_element[phenotype] = unique_phenotype_array[j];
-                    jsonObject.push(new_element);
+        if (Array.isArray(jsonObject[i][phenotype]) || typeof jsonObject[i][phenotype] === 'string' || jsonObject[i][phenotype] instanceof String) {
+            if (jsonObject[i][phenotype].includes(',')) {
+                var element = jsonObject[i];
+                var phenotype_array = element[phenotype].split(",");
+                // Remove duplicates
+                var unique_phenotype_array = phenotype_array.filter(function(c, index) {
+                    return phenotype_array.indexOf(c) === index;
+                });
+                // Add new records to the array
+                for (let j = 0; j < unique_phenotype_array.length; j++) {
+                    if (j === 0) {
+                        element[phenotype] = unique_phenotype_array[j];
+                    } else {
+                        var new_element = JSON.parse(JSON.stringify(element));
+                        new_element[phenotype] = unique_phenotype_array[j];
+                        jsonObject.push(new_element);
+                    }
                 }
             }
         }
@@ -29,7 +31,7 @@ function collectDataForFigure(jsonObject, phenotype, selectedKey) {
 
     var dict = {};
     var isFloat = true;
-    const specialChars = /[`!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?~]/;
+    const specialChars = /[`!@#$%^&*()_+\-=\[\]{};':"\\|,<>\/?~]/;
 
     for (let i = 0; i < jsonObject.length; i++) {
         var val = jsonObject[i][phenotype];
