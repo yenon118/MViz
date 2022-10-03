@@ -2,6 +2,9 @@
 include resource_path() . '/views/system/config.blade.php';
 
 $organism = $info['organism'];
+$chromosome = $info['chromosome'];
+$position = $info['position'];
+$genotype = $info['genotype'];
 $result_arr = $info['result_arr'];
 
 @endphp
@@ -45,6 +48,10 @@ $result_arr = $info['result_arr'];
         }
         echo "</table>";
         echo "</div>";
+
+        echo "<br /><br />";
+        echo "<button onclick=\"downloadVarientOnSelectedPosition('" . $organism . "', '" . $chromosome . "', " . $position . ", '" . $genotype . "')\" style=\"margin-right:20px;\">Download Data</button>";
+        echo "<br/><br/>";
     } else {
         echo "<p>No genotype data found!!!</p>";
     }
@@ -53,6 +60,7 @@ $result_arr = $info['result_arr'];
 
 </body>
 
+<script src="{{ asset('system/home/MViz/js/viewVarientOnSelectedPosition.js') }}" type="text/javascript"></script>
 
 <script type="text/javascript">
 </script>
