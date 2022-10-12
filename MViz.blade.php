@@ -4,6 +4,8 @@ include resource_path() . '/views/system/config.blade.php';
 $organism = $info['organism'];
 $gene_array = $info['gene_array'];
 $cnvr_array = $info['cnvr_array'];
+$binding_TF_array = $info['binding_TF_array'];
+$chromosome_array = $info['chromosome_array'];
 
 @endphp
 
@@ -30,16 +32,35 @@ $cnvr_array = $info['cnvr_array'];
                     @endforeach
                     )
                 </span><br />
-                <textarea id="gene1" name="gene1" rows="10" cols="40"></textarea>
-                <br /><br />
-                <label for="upstream_length_1"><b>Upstream length (bp)</b></label>
-                <span style="font-size:10pt">(eg 2000)</span>
-                <input type="text" id="upstream_length_1" name="upstream_length_1" size="40">
+                <textarea id="gene1" name="gene1" rows="12" cols="40"></textarea>
                 <br /><br />
                 <input type="submit" value="Search">
             </form>
         </td>
-        <td>
+        <td width="50%" align="center" valign="top" style="border:1px solid #999999; padding:10px; background-color:#f8f8f8; text-align:left;">
+            <form action="{{ route('system.tools.MViz.viewPromotersByBindingTFs', ['organism'=>$organism]) }}" method="get" target="_blank">
+                <h2>Search by Binding TFs</h2><br />
+                <label for="bindingTF1"><b>Binding TFs</b></label><br />
+                <span style="font-size:10pt">
+                    &nbsp;(eg
+                    @foreach($binding_TF_array as $binding_TF)
+                    {{ $binding_TF->Motif }}
+                    @endforeach
+                    )
+                </span><br />
+                <textarea id="bindingTF1" name="bindingTF1" rows="10" cols="40"></textarea>
+                <br /><br />
+                <label for="chromosome1"><b>Gene Binding Chromosome:</b></label>
+                <select name="chromosome1" id="chromosome1">
+                @php
+                for ($i = 0; $i < count($chromosome_array); $i++) {
+                    echo "<option value=\"" . $chromosome_array[$i]->Chromosome . "\">" . $chromosome_array[$i]->Chromosome . "</option>";
+                }
+                @endphp
+                </select>
+                <br /><br />
+                <input type="submit" value="Search">
+            </form>
         </td>
     </tr>
 </table>
@@ -156,6 +177,7 @@ $cnvr_array = $info['cnvr_array'];
 
 <script type="text/javascript">
     let gene_array = <?php echo json_encode($gene_array); ?>;
+    let binding_TF_array = <?php echo json_encode($binding_TF_array); ?>;
 
     // Populate gene1 textarea placeholder
     gene1_placeholder = "\nPlease separate each gene into a new line.\n\nExample:\n";
@@ -163,6 +185,13 @@ $cnvr_array = $info['cnvr_array'];
         gene1_placeholder += gene_array[i]['Gene'] + "\n";
     }
     document.getElementById('gene1').placeholder = gene1_placeholder;
+
+    // Populate bindingTF1 textarea placeholder
+    bindingTF1_placeholder = "\nPlease separate each gene into a new line.\n\nExample:\n";
+    for (let i = 0; i < binding_TF_array.length; i++) {
+        bindingTF1_placeholder += binding_TF_array[i]['Motif'] + "\n";
+    }
+    document.getElementById('bindingTF1').placeholder = bindingTF1_placeholder;
 
     // Populate gene2 textarea placeholder
     gene2_placeholder = "\nPlease separate each gene into a new line.\n\nExample:\n";

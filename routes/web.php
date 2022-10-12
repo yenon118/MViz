@@ -2,8 +2,13 @@
 Route::get('/system/tools/MViz/{organism}', 'System\Tools\KBCToolsMVizController@MVizPage')->name('system.tools.MViz');
 Route::get('/system/tools/MViz/viewPromotersByGenes/{organism}', 'System\Tools\KBCToolsMVizController@ViewPromotersByGenesPage')->name('system.tools.MViz.viewPromotersByGenes');
 Route::get('/system/tools/MViz/viewPromotersByGenes/queryGenotypeCount/{organism}', 'System\Tools\KBCToolsMVizController@QueryGenotypeCount')->name('system.tools.MViz.viewPromotersByGenes.queryGenotypeCount');
-Route::get('/system/tools/MViz/viewVarientOnSelectedPosition/{organism}', 'System\Tools\KBCToolsMVizController@ViewVarientOnSelectedPositionPage')->name('system.tools.MViz.viewVarientOnSelectedPosition');
-Route::get('/system/tools/MViz/viewVarientOnSelectedPosition/queryVarientOnSelectedPosition/{organism}', 'System\Tools\KBCToolsMVizController@QueryVarientOnSelectedPosition')->name('system.tools.MViz.viewVarientOnSelectedPosition.queryVarientOnSelectedPosition');
+Route::get('/system/tools/MViz/viewPromotersByBindingTFs/{organism}', 'System\Tools\KBCToolsMVizController@ViewPromotersByBindingTFsPage')->name('system.tools.MViz.viewPromotersByBindingTFs');
+Route::get('/system/tools/MViz/viewPromoterOnSelectedBindingTF/{organism}', 'System\Tools\KBCToolsMVizController@ViewPromoterOnSelectedBindingTFPage')->name('system.tools.MViz.viewPromoterOnSelectedBindingTF');
+Route::get('/system/tools/MViz/viewVariantAndPhenotype/{organism}', 'System\Tools\KBCToolsMVizController@ViewVariantAndPhenotypePage')->name('system.tools.MViz.viewVariantAndPhenotype');
+Route::get('/system/tools/MViz/viewVariantAndPhenotype/qeuryVariantAndPhenotype/{organism}', 'System\Tools\KBCToolsMVizController@QeuryVariantAndPhenotype')->name('system.tools.MViz.viewVariantAndPhenotype.qeuryVariantAndPhenotype');
+Route::get('/system/tools/MViz/viewVariantAndPhenotype/queryPhenotypeDescription/{organism}', 'System\Tools\KBCToolsMVizController@QueryPhenotypeDescription')->name('system.tools.MViz.viewVariantAndPhenotype.queryPhenotypeDescription');
+Route::get('/system/tools/MViz/viewVariantAndPhenotypeFigures/{organism}', 'System\Tools\KBCToolsMVizController@ViewVariantAndPhenotypeFiguresPage')->name('system.tools.MViz.viewVariantAndPhenotypeFigures');
+Route::get('/system/tools/MViz/viewVariantAndPhenotypeFigures/qeuryVariantAndPhenotypeFigures/{organism}', 'System\Tools\KBCToolsMVizController@QeuryVariantAndPhenotype')->name('system.tools.MViz.viewVariantAndPhenotypeFigures.qeuryVariantAndPhenotypeFigures');
 Route::get('/system/tools/MViz/viewAllCNVByGenes/{organism}', 'System\Tools\KBCToolsMVizController@ViewAllCNVByGenesPage')->name('system.tools.MViz.viewAllCNVByGenes');
 Route::get('/system/tools/MViz/viewCNVAndPhenotype/{organism}', 'System\Tools\KBCToolsMVizController@ViewCNVAndPhenotypePage')->name('system.tools.MViz.viewCNVAndPhenotype');
 Route::get('/system/tools/MViz/viewCNVAndPhenotype/qeuryCNVAndPhenotype/{organism}', 'System\Tools\KBCToolsMVizController@QeuryCNVAndPhenotype')->name('system.tools.MViz.viewCNVAndPhenotype.qeuryCNVAndPhenotype');

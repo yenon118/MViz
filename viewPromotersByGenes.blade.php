@@ -25,10 +25,10 @@ $result_arr = $info['result_arr'];
     @php
 
     for ($i = 0; $i < count($result_arr); $i++) {
-        echo "<b>" . $result_arr[$i]->Name . "</b> (" . $result_arr[$i]->Chromosome . ":" . $result_arr[$i]->Start . "-" . $result_arr[$i]->End . ") (" . $result_arr[$i]->Strand . ")";
+        echo "<b>Queried Gene: </b>" . $result_arr[$i]->Name . " (" . $result_arr[$i]->Chromosome . ":" . $result_arr[$i]->Start . "-" . $result_arr[$i]->End . ") (" . $result_arr[$i]->Strand . ")";
         echo "<br /><br />";
-        echo "<b>Promoter Region: </b>" . $result_arr[$i]->Promoter_Start . "-" . $result_arr[$i]->Promoter_End;
-        echo "<br /><br />";
+        // echo "<b>Promoter Region: </b>" . $result_arr[$i]->Promoter_Start . "-" . $result_arr[$i]->Promoter_End;
+        // echo "<br /><br />";
 
         if (count($result_arr[$i]->Motif_Data) > 0) {
 
@@ -73,7 +73,7 @@ $result_arr = $info['result_arr'];
 
             echo "<br /><br />";
         } else {
-            echo "<p>No motif found!!!</p><br /><br />";
+            echo "<p>No binding TF found in our database!!!</p><br /><br />";
         }
     }
 
@@ -206,7 +206,7 @@ function getMotifWeblogo(organism, motif, gene, chromosome, motif_start, motif_e
                 var detail_td = document.createElement("td");
                 detail_td.setAttribute("style", "border:1px solid black; min-width:20px; height:18.5px;");
                 var position_a = document.createElement("a");
-                position_a.href = "../viewVarientOnSelectedPosition/"+organism+"?Chromosome="+res[i]['Chromosome']+"&Position="+res[i]['Position']+"&Genotype="+res[i]['Genotype'];
+                position_a.href = "../viewVariantAndPhenotype/"+organism+"?Chromosome="+res[i]['Chromosome']+"&Position="+res[i]['Position']+"&Genotype="+res[i]['Genotype'];
                 position_a.target = "_blank";
                 position_a.innerHTML = res[i]['Count']
                 detail_td.appendChild(position_a);

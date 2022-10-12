@@ -14,10 +14,13 @@ use App\KBCClasses\DBKBCWrapperClass;
 
 class KBCToolsMVizController extends Controller
 {
+
+
     function __construct()
     {
         $this->db_kbc_wrapper = new DBKBCWrapperClass;
     }
+
 
     public function MVizPage(Request $request, $organism)
     {
@@ -29,14 +32,17 @@ class KBCToolsMVizController extends Controller
         // Table names
         if ($organism == "Osativa") {
             $table_name = "mViz_Rice_Japonica_Motif";
+            $tf_sequence_table_name = "mViz_Rice_Japonica_Motif_Sequence";
             $cnvr_table_name = "mViz_Rice_Nipponbare_CNVR";
             $gff_table_name = "mViz_Rice_Nipponbare_GFF";
         } elseif ($organism == "Athaliana") {
             $table_name = "mViz_Arabidopsis_Motif";
+            $tf_sequence_table_name = "mViz_Arabidopsis_Motif_Sequence";
             $cnvr_table_name = "mViz_Arabidopsis_CNVR";
             $gff_table_name = "mViz_Arabidopsis_GFF";
         } elseif ($organism == "Zmays") {
             $table_name = "mViz_Maize_Motif";
+            $tf_sequence_table_name = "mViz_Maize_Motif_Sequence";
             $cnvr_table_name = "mViz_Maize_CNVR";
             $gff_table_name = "mViz_Maize_GFF";
         }
@@ -55,6 +61,21 @@ class KBCToolsMVizController extends Controller
             $sql = $sql . "LIMIT 3;";
             
             $gene_array = DB::connection($db)->select($sql);
+
+            // Query binding TF from database
+            $sql = "SELECT DISTINCT Motif ";
+            $sql = $sql . "FROM " . $db . "." . $table_name . " ";
+            if ($organism == "Zmays") {
+                $sql = $sql . "WHERE Motif LIKE 'GRMZ%' ";
+            }
+            $sql = $sql . "LIMIT 3;";
+            
+            $binding_tf_array = DB::connection($db)->select($sql);
+
+            // Query binding TF from database
+            $sql = "SELECT DISTINCT Chromosome FROM " . $db . "." . $tf_sequence_table_name . "; ";
+            
+            $chromosome_array = DB::connection($db)->select($sql);
         }
 
         // Get one CNVR result
@@ -69,7 +90,9 @@ class KBCToolsMVizController extends Controller
             $info = [
                 'organism' => $organism,
                 'gene_array' => $gene_array,
-                'cnvr_array' => $cnvr_array
+                'binding_TF_array' => $binding_tf_array,
+                'cnvr_array' => $cnvr_array,
+                'chromosome_array' => $chromosome_array
             ];
 
             // Return to view
@@ -86,13 +109,14 @@ class KBCToolsMVizController extends Controller
 
     }
 
+
     public function ViewPromotersByGenesPage(Request $request, $organism) {
 
         // Database
         $db = "KBC_" . $organism;
 
         $gene1 = $request->gene1;
-        $upstream_length_1 = $request->upstream_length_1;
+        $upstream_length_1 = 2000;
 
         // Convert gene1 string to array
         if (is_string($gene1)) {
@@ -111,8 +135,8 @@ class KBCToolsMVizController extends Controller
         if (is_string($upstream_length_1)) {
             $upstream_length = intval(trim($upstream_length_1));
         } elseif (is_int($upstream_length_1)) {
-            $upstream_length = upstream_length_1;
-        } elseif (is_float(upstream_length_1)) {
+            $upstream_length = $upstream_length_1;
+        } elseif (is_float($upstream_length_1)) {
             $upstream_length = intval($upstream_length_1);
         }
 
@@ -168,7 +192,7 @@ class KBCToolsMVizController extends Controller
             ) AS M
             INNER JOIN (
                 SELECT Chromosome, Start, End, Strand, Name, Sequence FROM " . $db . "." . $motif_sequence_table_name . " 
-                WHERE (Chromosome = '" . $result_arr[$i]->Chromosome . "') AND (Strand = '" . $result_arr[$i]->Strand . "') 
+                WHERE (Chromosome = '" . $result_arr[$i]->Chromosome . "') 
                 AND ((Start BETWEEN " . $result_arr[$i]->Promoter_Start . " AND " . $result_arr[$i]->Promoter_End . " ) OR (End BETWEEN " . $result_arr[$i]->Promoter_Start . " AND " . $result_arr[$i]->Promoter_End . "))
             ) AS MS
             ON M.Motif = MS.Name
@@ -188,7 +212,7 @@ class KBCToolsMVizController extends Controller
             ) AS M
             INNER JOIN (
                 SELECT Chromosome, Start, End, Strand, Name, Sequence FROM " . $db . "." . $motif_sequence_table_name . " 
-                WHERE (Chromosome = '" . $result_arr[$i]->Chromosome . "') AND (Strand = '" . $result_arr[$i]->Strand . "') 
+                WHERE (Chromosome = '" . $result_arr[$i]->Chromosome . "') 
                 AND ((Start BETWEEN " . $result_arr[$i]->Promoter_Start . " AND " . $result_arr[$i]->Promoter_End . " ) OR (End BETWEEN " . $result_arr[$i]->Promoter_Start . " AND " . $result_arr[$i]->Promoter_End . "))
             ) AS MS
             ON M.Motif = MS.Name
@@ -214,6 +238,7 @@ class KBCToolsMVizController extends Controller
         // Return to view
         return view('system/tools/MViz/viewPromotersByGenes')->with('info', $info);
     }
+
 
     public function QueryGenotypeCount(Request $request, $organism) {
 
@@ -256,51 +281,250 @@ class KBCToolsMVizController extends Controller
         return json_encode($result_arr);
     }
 
-    public function QueryVarientOnSelectedPosition(Request $request, $organism) {
+
+    public function ViewPromotersByBindingTFsPage(Request $request, $organism) {
 
         // Database
         $db = "KBC_" . $organism;
 
-        $chromosome = $request->Chromosome;
-        $position = $request->Position;
-        $genotype = $request->Genotype;
+        $bindingTF1 = $request->bindingTF1;
+        $chromosome1 = $request->chromosome1;
+        $upstream_length_1 = 2000;
 
-        // Trim string
-        if (is_string($chromosome)) {
-            $chromosome = trim($chromosome);
+        // Convert bindingTF1 string to array
+        if (is_string($bindingTF1)) {
+            $binding_tf_arr = preg_split("/[;, \n]+/", $bindingTF1);
+            for ($i = 0; $i < count($binding_tf_arr); $i++) {
+                $binding_tf_arr[$i] = trim($binding_tf_arr[$i]);
+            }
+        } elseif (is_array($bindingTF1)) {
+            $binding_tf_arr = $bindingTF1;
+            for ($i = 0; $i < count($binding_tf_arr); $i++) {
+                $binding_tf_arr[$i] = trim($binding_tf_arr[$i]);
+            }
         }
-        if (is_string($position)) {
-            $position = trim($position);
-        }
-        if (is_string($genotype)) {
-            $genotype = trim($genotype);
+
+        // Convert upstream length to integer
+        if (is_string($upstream_length_1)) {
+            $upstream_length = intval(trim($upstream_length_1));
+        } elseif (is_int($upstream_length_1)) {
+            $upstream_length = $upstream_length_1;
+        } elseif (is_float($upstream_length_1)) {
+            $upstream_length = intval($upstream_length_1);
         }
 
         // Table names
         if ($organism == "Osativa") {
-            $table_name = "mViz_Rice_". $chromosome . "_genotype_data";
+            $table_name = "mViz_Rice_Nipponbare_GFF";
+            $motif_table_name = "mViz_Rice_Japonica_Motif";
+            $motif_sequence_table_name = "mViz_Rice_Japonica_Motif_Sequence";
+            $tf_table_name = "mViz_Rice_Japonica_TF";
+            $genotype_data_table_name = "mViz_Rice_" . $chromosome1 . "_genotype_data";
         } elseif ($organism == "Athaliana") {
-            $table_name = "mViz_Arabidopsis_". $chromosome . "_genotype_data";
+            $table_name = "mViz_Arabidopsis_GFF";
+            $motif_table_name = "mViz_Arabidopsis_Motif";
+            $motif_sequence_table_name = "mViz_Arabidopsis_Motif_Sequence";
+            $tf_table_name = "mViz_Arabidopsis_TF";
+            $genotype_data_table_name = "mViz_Arabidopsis_" . $chromosome1 . "_genotype_data";
         } elseif ($organism == "Zmays") {
-            $table_name = "mViz_Maize_". $chromosome . "_genotype_data";
+            $table_name = "mViz_Maize_GFF";
+            $motif_table_name = "mViz_Maize_Motif";
+            $motif_sequence_table_name = "mViz_Maize_Motif_Sequence";
+            $tf_table_name = "mViz_Maize_TF";
+            $genotype_data_table_name = "mViz_Maize_" . $chromosome1 . "_genotype_data";
         }
 
-        // Query string
-        $query_str = "SELECT Chromosome, Position, Accession, Genotype, ";
-        $query_str = $query_str . "CASE Functional_Effect WHEN 'Ref' THEN 'Ref' ELSE 'Alt' END AS Category, ";
-        $query_str = $query_str . "Imputation ";
-        $query_str = $query_str . "FROM " . $db . "." . $table_name . " ";
-        $query_str = $query_str . "WHERE (Chromosome = '" . $chromosome . "') ";
-        $query_str = $query_str . "AND (Position = " . $position . ") ";
-        $query_str = $query_str . "AND (Genotype = '" . $genotype . "') ";
-        $query_str = $query_str . "ORDER BY Chromosome, Position;";
+        // Get binding TFs
+        $result_arr = array();
+        for ($i = 0; $i < count($binding_tf_arr); $i++) {
 
-        $result_arr = DB::connection($db)->select($query_str);
+            $query_str = "
+            SELECT M.Motif AS Binding_TF, TF.TF_Family, 
+            MS.Chromosome AS Binding_Chromosome, MS.Start AS Binding_Start, MS.End AS Binding_End, MS.Sequence AS Gene_Binding_Sequence, 
+            M.Gene, GFF.Chromosome, GFF.Start AS Gene_Start, GFF.End AS Gene_End, GFF.Strand AS Gene_Strand, GFF.Gene_Description, 
+            GROUP_CONCAT(GD.Position SEPARATOR ', ') AS Variant_Position 
+            FROM (
+                SELECT Motif, Gene FROM " . $db . "." . $motif_table_name . " 
+                WHERE Motif = '" . $binding_tf_arr[$i] . "'
+            ) AS M 
+            LEFT JOIN " . $db . "." . $tf_table_name . " AS TF 
+            ON M.Motif = TF.TF 
+            LEFT JOIN " . $db . "." . $motif_sequence_table_name . " AS MS 
+            ON M.Motif = MS.Name 
+            LEFT JOIN (
+                SELECT ID, Name, Chromosome, Start, End, Strand, Gene_Description, 
+                CASE Strand
+                    WHEN '+' THEN Start-1-" . $upstream_length_1 . "
+                    ELSE End+1
+                END AS Promoter_Start, 
+                CASE Strand
+                    WHEN '+' THEN Start-1
+                    ELSE End+1+" . $upstream_length_1 . "
+                END AS Promoter_End 
+                FROM " . $db . "." . $table_name . " 
+                WHERE Chromosome = '" . $chromosome1 . "' 
+            ) AS GFF 
+            ON ((M.Gene = GFF.ID) AND (MS.Chromosome = GFF.Chromosome) AND (MS.Start BETWEEN GFF.Promoter_Start AND GFF.Promoter_End)) 
+            LEFT JOIN (
+                SELECT DISTINCT Chromosome, Position FROM " . $db . "." . $genotype_data_table_name . " 
+            ) AS GD 
+            ON ((MS.Chromosome = GD.Chromosome) AND (GD.Position BETWEEN MS.Start AND MS.End))
+            WHERE ((GFF.Chromosome = '" . $chromosome1 . "') AND (MS.Chromosome = GFF.Chromosome) AND (MS.Start BETWEEN GFF.Promoter_Start AND GFF.Promoter_End)) 
+            GROUP BY M.Motif, TF.TF_Family, MS.Chromosome, MS.Start, MS.End, MS.Sequence, M.Gene, GFF.Chromosome, GFF.Start, GFF.End, GFF.Strand, GFF.Gene_Description 
+            ORDER BY MS.Chromosome, MS.Start;
+            ";
 
-        return json_encode($result_arr);
+            $query_str2 = "
+            SELECT M.Motif AS Binding_TF, TF.TF_Family, 
+            MS.Chromosome AS Binding_Chromosome, MS.Start AS Binding_Start, MS.End AS Binding_End, MS.Sequence AS Gene_Binding_Sequence, 
+            M.Gene, GFF.Chromosome, GFF.Start AS Gene_Start, GFF.End AS Gene_End, GFF.Strand AS Gene_Strand, GFF.Gene_Description
+            FROM (
+                SELECT Motif, Gene FROM " . $db . "." . $motif_table_name . " 
+                WHERE Motif = '" . $binding_tf_arr[$i] . "'
+            ) AS M 
+            LEFT JOIN " . $db . "." . $tf_table_name . " AS TF 
+            ON M.Motif = TF.TF 
+            LEFT JOIN " . $db . "." . $motif_sequence_table_name . " AS MS 
+            ON M.Motif = MS.Name 
+            LEFT JOIN (
+                SELECT ID, Name, Chromosome, Start, End, Strand, Gene_Description, 
+                CASE Strand
+                    WHEN '+' THEN Start-1-" . $upstream_length_1 . "
+                    ELSE End+1
+                END AS Promoter_Start, 
+                CASE Strand
+                    WHEN '+' THEN Start-1
+                    ELSE End+1+" . $upstream_length_1 . "
+                END AS Promoter_End 
+                FROM " . $db . "." . $table_name . " 
+                WHERE Chromosome = '" . $chromosome1 . "' 
+            ) AS GFF 
+            ON ((M.Gene = GFF.ID) AND (MS.Chromosome = GFF.Chromosome) AND (MS.Start BETWEEN GFF.Promoter_Start AND GFF.Promoter_End)) 
+            WHERE ((GFF.Chromosome = '" . $chromosome1 . "') AND (MS.Chromosome = GFF.Chromosome) AND (MS.Start BETWEEN GFF.Promoter_Start AND GFF.Promoter_End)) 
+            ORDER BY MS.Chromosome, MS.Start, MS.End;
+            ";
+
+            try {
+                $binding_tf_result_arr = DB::connection($db)->select($query_str2);
+            } catch (\Exception $e) {
+                $binding_tf_result_arr = array(); 
+            }
+
+            $result_arr[$binding_tf_arr[$i]] = $binding_tf_result_arr;
+        }
+
+        // Package variables that need to go to the view
+        $info = [
+            'organism' => $organism,
+            'binding_tf_arr' => $binding_tf_arr,
+            'result_arr' => $result_arr,
+        ];
+
+        // Return to view
+        return view('system/tools/MViz/viewPromotersByBindingTFs')->with('info', $info);
     }
 
-    public function ViewVarientOnSelectedPositionPage(Request $request, $organism) {
+
+    public function ViewPromoterOnSelectedBindingTFPage(Request $request, $organism) {
+
+        // Database
+        $db = "KBC_" . $organism;
+
+        $motif = $request->Motif;
+        $gene = $request->Gene;
+        $chromosome = $request->Chromosome;
+        $motif_start = $request->Motif_Start;
+        $motif_end = $request->Motif_End;
+        $gene_binding_sequence = $request->Gene_Binding_Sequence;
+        $upstream_length_1 = 2000;
+
+        // Table names
+        if ($organism == "Osativa") {
+            $table_name = "mViz_Rice_Nipponbare_GFF";
+            $motif_table_name = "mViz_Rice_Japonica_Motif";
+            $motif_sequence_table_name = "mViz_Rice_Japonica_Motif_Sequence";
+            $tf_table_name = "mViz_Rice_Japonica_TF";
+            $genotype_data_table_name = "mViz_Rice_" . $chromosome . "_genotype_data";
+            $genotype_count_table_name = "mViz_Rice_". $chromosome . "_genotype_count";
+        } elseif ($organism == "Athaliana") {
+            $table_name = "mViz_Arabidopsis_GFF";
+            $motif_table_name = "mViz_Arabidopsis_Motif";
+            $motif_sequence_table_name = "mViz_Arabidopsis_Motif_Sequence";
+            $tf_table_name = "mViz_Arabidopsis_TF";
+            $genotype_data_table_name = "mViz_Arabidopsis_" . $chromosome . "_genotype_data";
+            $genotype_count_table_name = "mViz_Arabidopsis_" . $chromosome . "_genotype_count";
+        } elseif ($organism == "Zmays") {
+            $table_name = "mViz_Maize_GFF";
+            $motif_table_name = "mViz_Maize_Motif";
+            $motif_sequence_table_name = "mViz_Maize_Motif_Sequence";
+            $tf_table_name = "mViz_Maize_TF";
+            $genotype_data_table_name = "mViz_Maize_" . $chromosome . "_genotype_data";
+            $genotype_count_table_name = "mViz_Maize_" . $chromosome . "_genotype_count";
+        }
+
+        $query_str = "
+        SELECT M.Motif AS Binding_TF, TF.TF_Family, 
+        MS.Chromosome AS Binding_Chromosome, MS.Start AS Binding_Start, MS.End AS Binding_End, MS.Sequence AS Gene_Binding_Sequence, 
+        M.Gene, GFF.Chromosome, GFF.Start AS Gene_Start, GFF.End AS Gene_End, GFF.Strand AS Gene_Strand, GFF.Gene_Description
+        FROM (
+            SELECT Motif, Gene FROM " . $db . "." . $motif_table_name . " 
+            WHERE Motif = '" . $motif . "' AND Gene = '" . $gene . "' 
+        ) AS M 
+        LEFT JOIN " . $db . "." . $tf_table_name . " AS TF 
+        ON M.Motif = TF.TF 
+        LEFT JOIN " . $db . "." . $motif_sequence_table_name . " AS MS 
+        ON M.Motif = MS.Name 
+        LEFT JOIN (
+            SELECT ID, Name, Chromosome, Start, End, Strand, Gene_Description, 
+            CASE Strand
+                WHEN '+' THEN Start-1-" . $upstream_length_1 . "
+                ELSE End+1
+            END AS Promoter_Start, 
+            CASE Strand
+                WHEN '+' THEN Start-1
+                ELSE End+1+" . $upstream_length_1 . "
+            END AS Promoter_End 
+            FROM " . $db . "." . $table_name . " 
+            WHERE Chromosome = '" . $chromosome . "' 
+        ) AS GFF 
+        ON ((M.Gene = GFF.ID) AND (MS.Chromosome = GFF.Chromosome) AND (MS.Start BETWEEN GFF.Promoter_Start AND GFF.Promoter_End)) 
+        WHERE ((GFF.Chromosome = '" . $chromosome . "') AND (MS.Start = " . $motif_start . ") AND (MS.End = " . $motif_end . ")) 
+        ORDER BY MS.Chromosome, MS.Start, MS.End;
+        ";
+
+        $binding_tf_result_arr = DB::connection($db)->select($query_str);
+
+        $query_str = "SELECT * ";
+        $query_str = $query_str . "FROM " . $db . "." . $genotype_count_table_name . " ";
+        $query_str = $query_str . "WHERE (Chromosome = '" . $chromosome . "') ";
+        $query_str = $query_str . "AND (Position BETWEEN " . $motif_start . " AND " . $motif_end . ") ";
+        $query_str = $query_str . "ORDER BY Chromosome, Position, Count DESC;";
+
+        try {
+            $genotype_count_result_arr = DB::connection($db)->select($query_str);
+        } catch (\Exception $e) {
+            $genotype_count_result_arr = array(); 
+        }
+
+        // Package variables that need to go to the view
+        $info = [
+            'organism' => $organism,
+            'Motif' => $motif,
+            'Gene' => $gene,
+            'Chromosome' => $chromosome,
+            'Motif_Start' => $motif_start,
+            'Motif_End' => $motif_end,
+            'Gene_Binding_Sequence' => $gene_binding_sequence,
+            'binding_tf_result_arr' => $binding_tf_result_arr,
+            'genotype_count_result_arr' => $genotype_count_result_arr
+        ];
+
+        // Return to view
+        return view('system/tools/MViz/viewPromoterOnSelectedBindingTF')->with('info', $info);
+    }
+
+
+    public function ViewVariantAndPhenotypePage(Request $request, $organism) {
 
         // Database
         $db = "KBC_" . $organism;
@@ -322,24 +546,34 @@ class KBCToolsMVizController extends Controller
 
         // Table names
         if ($organism == "Osativa") {
-            $table_name = "mViz_Rice_". $chromosome . "_genotype_data";
+            $genotype_count_table_name = "mViz_Rice_". $chromosome . "_genotype_count";
+            $phenotype_selection_table_name = "mViz_Rice_Phenotype_Selection";
         } elseif ($organism == "Athaliana") {
-            $table_name = "mViz_Arabidopsis_". $chromosome . "_genotype_data";
+            $genotype_count_table_name = "mViz_Arabidopsis_". $chromosome . "_genotype_count";
+            $phenotype_selection_table_name = "mViz_Arabidopsis_Phenotype_Selection";
         } elseif ($organism == "Zmays") {
-            $table_name = "mViz_Maize_". $chromosome . "_genotype_data";
+            $genotype_count_table_name = "mViz_Maize_". $chromosome . "_genotype_count";
+            $phenotype_selection_table_name = "mViz_Maize_Phenotype_Selection";
         }
 
         // Query string
-        $query_str = "SELECT Chromosome, Position, Accession, Genotype, ";
-        $query_str = $query_str . "CASE Functional_Effect WHEN 'Ref' THEN 'Ref' ELSE 'Alt' END AS Category, ";
-        $query_str = $query_str . "Imputation ";
-        $query_str = $query_str . "FROM " . $db . "." . $table_name . " ";
-        $query_str = $query_str . "WHERE (Chromosome = '" . $chromosome . "') ";
-        $query_str = $query_str . "AND (Position = " . $position . ") ";
-        $query_str = $query_str . "AND (Genotype = '" . $genotype . "') ";
-        $query_str = $query_str . "ORDER BY Chromosome, Position;";
+        $query_str = "SELECT * FROM " . $db . "." . $phenotype_selection_table_name . ";" ;
 
-        $result_arr = DB::connection($db)->select($query_str);
+        try {
+            $phenotype_selection_arr = DB::connection($db)->select($query_str);
+        } catch (\Exception $e) {
+            $phenotype_selection_arr = array();
+        }
+
+        $query_str = "
+            SELECT * 
+            FROM " . $db . "." . $genotype_count_table_name . " 
+            WHERE ((Chromosome = '" . $chromosome . "') 
+            AND (Position = " . $position . ")) 
+            ORDER BY Chromosome, Position; 
+        ";
+
+        $genotype_selection_arr = DB::connection($db)->select($query_str);
 
         // Package variables that need to go to the view
         $info = [
@@ -347,12 +581,130 @@ class KBCToolsMVizController extends Controller
             'chromosome' => $chromosome,
             'position' => $position,
             'genotype' => $genotype,
-            'result_arr' => $result_arr
+            'phenotype_selection_arr' => $phenotype_selection_arr,
+            'genotype_selection_arr' => $genotype_selection_arr
         ];
 
         // Return to view
-        return view('system/tools/MViz/viewVarientOnSelectedPosition')->with('info', $info);
+        return view('system/tools/MViz/viewVariantAndPhenotype')->with('info', $info);
     }
+
+
+    public function QeuryVariantAndPhenotype(Request $request, $organism) {
+
+        // Database
+        $db = "KBC_" . $organism;
+
+        $chromosome = $request->Chromosome;
+        $position = $request->Position;
+        $genotype = $request->Genotype;
+        $phenotype = $request->Phenotype;
+
+        if (is_string($genotype)) {
+            $genotype_array = preg_split("/[;, \n]+/", $genotype);
+            for ($i = 0; $i < count($genotype_array); $i++) {
+                $genotype_array[$i] = trim($genotype_array[$i]);
+            }
+        } elseif (is_array($genotype)) {
+            $genotype_array = $genotype;
+            for ($i = 0; $i < count($genotype_array); $i++) {
+                $genotype_array[$i] = trim($genotype_array[$i]);
+            }
+        }
+        
+        if (is_string($phenotype)) {
+            $phenotype_array = preg_split("/[;, \n]+/", $phenotype);
+            for ($i = 0; $i < count($phenotype_array); $i++) {
+                $phenotype_array[$i] = trim($phenotype_array[$i]);
+            }
+        } elseif (is_array($phenotype)) {
+            $phenotype_array = $phenotype;
+            for ($i = 0; $i < count($phenotype_array); $i++) {
+                $phenotype_array[$i] = trim($phenotype_array[$i]);
+            }
+        }
+
+        // Table names
+        if ($organism == "Osativa") {
+            $genotype_data_table_name = "mViz_Rice_". $chromosome . "_genotype_data";
+            $phenotype_table_name = "mViz_Rice_Phenotype_Data";
+        } elseif ($organism == "Athaliana") {
+            $genotype_data_table_name = "mViz_Arabidopsis_". $chromosome . "_genotype_data";
+            $phenotype_table_name = "mViz_Arabidopsis_Phenotype_Data";
+        } elseif ($organism == "Zmays") {
+            $genotype_data_table_name = "mViz_Maize_". $chromosome . "_genotype_data";
+            $phenotype_table_name = "mViz_Maize_Phenotype_Data";
+        }
+
+        // Construct query string
+        $query_str = "SELECT G.Chromosome, G.Position, G.Accession, G.Genotype, ";
+        $query_str = $query_str . "CASE G.Functional_Effect WHEN 'Ref' THEN 'Ref' ELSE 'Alt' END AS Category, ";
+        $query_str = $query_str . "G.Imputation ";
+        if (isset($phenotype_array) && is_array($phenotype_array) && !empty($phenotype_array)) {
+            for ($i = 0; $i < count($phenotype_array); $i++) {
+                $query_str = $query_str . ", PH." . $phenotype_array[$i] . " ";
+            }
+        }
+        $query_str = $query_str . "FROM " . $db . "." . $genotype_data_table_name . " AS G ";
+        if (isset($phenotype_array) && is_array($phenotype_array) && !empty($phenotype_array)) {
+            $query_str = $query_str . "LEFT JOIN " . $db . "." . $phenotype_table_name . " AS PH ";
+            $query_str = $query_str . "ON G.Accession = PH.Accession ";
+        }
+        $query_str = $query_str . "WHERE (G.Chromosome = '" . $chromosome . "') ";
+        $query_str = $query_str . "AND (G.Position = " . $position . ") ";
+        if (count($genotype_array) > 0) {
+            $query_str = $query_str . "AND (G.Genotype IN ('";
+            for ($i = 0; $i < count($genotype_array); $i++) {
+                if($i < (count($genotype_array)-1)){
+                    $query_str = $query_str . trim($genotype_array[$i]) . "', '";
+                } elseif ($i == (count($genotype_array)-1)) {
+                    $query_str = $query_str . trim($genotype_array[$i]);
+                }
+            }
+            $query_str = $query_str . "')) ";
+        }
+        $query_str = $query_str . "ORDER BY G.Chromosome, G.Position, G.Genotype;";
+    
+        $result_arr = DB::connection($db)->select($query_str);
+
+        return json_encode($result_arr);
+    }
+
+    public function ViewVariantAndPhenotypeFiguresPage(Request $request, $organism) {
+
+        // Database
+        $db = "KBC_" . $organism;
+
+        $chromosome = $request->chromosome_1;
+        $position = $request->position_1;
+        $genotype = $request->genotype_1;
+        $phenotype = $request->phenotype_1;
+
+        if (is_string($genotype)) {
+            $genotype_array = preg_split("/[;, \n]+/", $genotype);
+            for ($i = 0; $i < count($genotype_array); $i++) {
+                $genotype_array[$i] = trim($genotype_array[$i]);
+            }
+        } elseif (is_array($genotype)) {
+            $genotype_array = $genotype;
+            for ($i = 0; $i < count($genotype_array); $i++) {
+                $genotype_array[$i] = trim($genotype_array[$i]);
+            }
+        }
+
+        // Package variables that need to go to the view
+        $info = [
+            'organism' => $organism,
+            'chromosome' => $chromosome,
+            'position' => $position,
+            'genotype_array' => $genotype_array,
+            'phenotype' => $phenotype,
+        ];
+
+        // Return to view
+        return view('system/tools/MViz/viewVariantAndPhenotypeFigures')->with('info', $info);
+    }
+
 
     public function ViewAllCNVByGenesPage(Request $request, $organism) {
 
