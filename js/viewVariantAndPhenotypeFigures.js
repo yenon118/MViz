@@ -119,6 +119,7 @@ function plotFigure(jsonObject, keyColumn, divID) {
                 title: {
                     text: yAxisTitle
                 },
+                fixedrange: true,
                 zeroline: false
             }
         };
@@ -191,7 +192,8 @@ function plotFigure(jsonObject, keyColumn, divID) {
             xaxis: {
                 title: {
                     text: xAxisTitle
-                }
+                },
+                fixedrange: true
             },
             yaxis: {
                 title: {
