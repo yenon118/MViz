@@ -1,5 +1,16 @@
 function processQueriedData(jsonObject, phenotype) {
 
+    let idx_array = [];
+    for (let i = 0; i < jsonObject.length; i++) {
+        if (jsonObject[i][phenotype] == "" || jsonObject[i][phenotype] === null || jsonObject[i][phenotype] == "null" || jsonObject[i][phenotype] == "-" || jsonObject[i][phenotype] == "_" || jsonObject[i][phenotype] == "NA") {
+            idx_array.push(i);
+        }
+    }
+    idx_array.reverse();
+    for (let i = 0; i < idx_array.length; i++) {
+        jsonObject.splice(idx_array[i],1);
+    }
+
     for (let i = 0; i < jsonObject.length; i++) {
         if (Array.isArray(jsonObject[i][phenotype]) || typeof jsonObject[i][phenotype] === 'string' || jsonObject[i][phenotype] instanceof String) {
             if (jsonObject[i][phenotype].includes(',')) {
@@ -50,24 +61,29 @@ function collectDataForFigure(jsonObject, phenotype, selectedKey) {
             isFloat = false
         }
         // Add data into dictionary
-        if (!(dict.hasOwnProperty(jsonObject[i][selectedKey]))) {
-            dict[jsonObject[i][selectedKey]] = [val];
-        } else {
-            dict[jsonObject[i][selectedKey]].push(val);
+        if ((!(jsonObject[i][selectedKey] === undefined)) && (jsonObject[i][selectedKey] != null) && (jsonObject[i][selectedKey] != "null") && (jsonObject[i][selectedKey] != "")) {
+            if (!(dict.hasOwnProperty(jsonObject[i][selectedKey]))) {
+                dict[jsonObject[i][selectedKey]] = [val];
+            } else {
+                dict[jsonObject[i][selectedKey]].push(val);
+            }
         }
     }
 
     return {'Data':dict, 'IsFloat':isFloat};
 }
 
-function plotFigure(jsonObject, title, divID) {
+
+function plotFigure(jsonObject, keyColumn, divID) {
 
     var data = [];
     var keys = Object.keys(jsonObject['Data']);
 
     if (jsonObject['IsFloat']){
+        xAxisTitle = "Phenotype Measurement";
+        yAxisTitle = keyColumn;
         // Update title
-        title = title + " Box Plot";
+        title = keyColumn + " Box Plot";
         // Format the data to fit figure requirements
         if (jsonObject['Data']) {
             for (let i = 0; i < keys.length; i++) {
@@ -75,8 +91,14 @@ function plotFigure(jsonObject, title, divID) {
                     if (jsonObject['Data'][keys[i]].length > 0) {
                         data.push({
                             x: jsonObject['Data'][keys[i]],
-                            type: 'box',
+                            type: 'violin',
                             name: keys[i],
+                            box: {
+                                visible: true
+                            },
+                            meanline: {
+                                visible: true
+                            },
                             boxpoints: 'Outliers',
                             boxmean: true
                         })
@@ -86,7 +108,19 @@ function plotFigure(jsonObject, title, divID) {
         }
         // Create layout
         var layout = {
-            title: title
+            title: title,
+            xaxis: {
+                title: {
+                    text: xAxisTitle
+                },
+                zeroline: false
+            },
+            yaxis: {
+                title: {
+                    text: yAxisTitle
+                },
+                zeroline: false
+            }
         };
         // Adjust configuration
         var config = {
@@ -108,8 +142,10 @@ function plotFigure(jsonObject, title, divID) {
             }
         }
     } else {
+        xAxisTitle = keyColumn;
+        yAxisTitle = "Accession Count";
         // Update title
-        title = title + " Bar Plot";
+        title = keyColumn + " Bar Plot";
         // Reformat data for bar plot
         var barData = {};
         if (jsonObject['Data']) {
@@ -151,7 +187,17 @@ function plotFigure(jsonObject, title, divID) {
         // Create layout
         var layout = {
             title: title,
-            barmode: 'group'
+            barmode: 'group',
+            xaxis: {
+                title: {
+                    text: xAxisTitle
+                }
+            },
+            yaxis: {
+                title: {
+                    text: yAxisTitle
+                }
+            }
         };
         // Adjust configuration
         var config = {
