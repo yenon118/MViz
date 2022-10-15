@@ -41,7 +41,10 @@ $phenotype = $info['phenotype'];
 <br /><br />
 
 <h3>Figures:</h3>
-<div id="genotype_figure_div">Loading Genotype plot...</div>
+<div id="genotype_section_div">
+    <div id="genotype_figure_div">Loading genotype plot...</div>
+    <div id="genotype_summary_table_div">Loading genotype summary table...</div>
+</div>
 
 </body>
 
@@ -70,26 +73,48 @@ $phenotype = $info['phenotype'];
                 res = JSON.parse(response);
 
                 if (res && phenotype) {
+
+                    document.getElementById("genotype_figure_div").style.minHeight = "800px";
+
                     var result_arr = processQueriedData(res, phenotype);
 
                     var genotypeData = collectDataForFigure(result_arr, phenotype, 'Genotype');
 
-                    plotFigure(genotypeData, 'Genotype', 'genotype_figure_div');
+                    plotFigure(genotypeData, 'Genotype', 'Genotype', 'genotype_figure_div');
+
+                    // Summarize data
+                    var summary_array = summarizeQueriedData(JSON.parse(JSON.stringify(res)), phenotype, 'Genotype', genotypeData['IsFloat']);
+
+                    // Render summarized data
+                    document.getElementById('genotype_summary_table_div').innerText = "";
+                    document.getElementById('genotype_summary_table_div').innerHTML = "";
+                    document.getElementById('genotype_summary_table_div').appendChild(
+                        constructInfoTable(summary_array)
+                    );
+                    document.getElementById('genotype_summary_table_div').style.overflow = 'scroll';
                 }
             },
             error: function (xhr, status, error) {
                 console.log('Error with code ' + xhr.status + ': ' + xhr.statusText);
                 document.getElementById('genotype_figure_div').innerText="";
+                document.getElementById('genotype_summary_table_div').innerHTML="";
                 var p_tag = document.createElement('p');
                 p_tag.innerHTML = "Genotype distribution figure is not available due to lack of data!!!";
                 document.getElementById('genotype_figure_div').appendChild(p_tag);
+                var p_tag = document.createElement('p');
+                p_tag.innerHTML = "Genotype summary table is not available due to lack of data!!!";
+                document.getElementById('genotype_summary_table_div').appendChild(p_tag);
             }
         });
     } else {
         document.getElementById('genotype_figure_div').innerText="";
+        document.getElementById('genotype_summary_table_div').innerHTML="";
         var p_tag = document.createElement('p');
         p_tag.innerHTML = "Genotype distribution figure is not available due to lack of data!!!";
         document.getElementById('genotype_figure_div').appendChild(p_tag);
+        var p_tag = document.createElement('p');
+        p_tag.innerHTML = "Genotype summary table is not available due to lack of data!!!";
+        document.getElementById('genotype_summary_table_div').appendChild(p_tag);
     }
 
 </script>

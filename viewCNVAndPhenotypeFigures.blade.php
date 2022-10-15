@@ -53,8 +53,11 @@ $phenotype = $info['phenotype'];
 <br /><br />
 
 <h3>Figures:</h3>
-<div id="cn_figure_div">Loading CN plot...</div>
-<div id="status_figure_div">Loading status plot...</div>
+<div id="cn_section_div">
+    <div id="cn_figure_div">Loading CN plot...</div>
+    <div id="cn_summary_table_div">Loading CN summary table...</div>
+</div>
+<!-- <div id="status_figure_div">Loading status plot...</div> -->
 
 </body>
 
@@ -87,36 +90,59 @@ $phenotype = $info['phenotype'];
                 res = JSON.parse(response);
 
                 if (res && phenotype) {
+
+                    document.getElementById("cn_figure_div").style.minHeight = "800px";
+                    // document.getElementById("status_figure_div").style.minHeight = "800px";
+
                     var result_arr = processQueriedData(res, phenotype);
 
                     var cnData = collectDataForFigure(result_arr, phenotype, 'CN');
-                    var statusData = collectDataForFigure(result_arr, phenotype, 'Status');
+                    // var statusData = collectDataForFigure(result_arr, phenotype, 'Status');
 
-                    plotFigure(cnData, 'CN', 'cn_figure_div')
-                    plotFigure(statusData, 'Status', 'status_figure_div')
+                    plotFigure(cnData, 'CN', 'CN', 'cn_figure_div')
+                    // plotFigure(statusData, 'Status', 'Status', 'status_figure_div')
+
+                    // Summarize data
+                    var summary_array = summarizeQueriedData(JSON.parse(JSON.stringify(res)), phenotype, 'CN', cnData['IsFloat']);
+
+                    // Render summarized data
+                    document.getElementById('cn_summary_table_div').innerText = "";
+                    document.getElementById('cn_summary_table_div').innerHTML = "";
+                    document.getElementById('cn_summary_table_div').appendChild(
+                        constructInfoTable(summary_array)
+                    );
+                    document.getElementById('cn_summary_table_div').style.overflow = 'scroll';
                 }
             },
             error: function (xhr, status, error) {
                 console.log('Error with code ' + xhr.status + ': ' + xhr.statusText);
                 document.getElementById('cn_figure_div').innerText="";
-                document.getElementById('status_figure_div').innerHTML="";
+                document.getElementById('cn_summary_table_div').innerHTML="";
+                // document.getElementById('status_figure_div').innerHTML="";
                 var p_tag = document.createElement('p');
                 p_tag.innerHTML = "CN distribution figure is not available due to lack of data!!!";
                 document.getElementById('cn_figure_div').appendChild(p_tag);
                 var p_tag = document.createElement('p');
-                p_tag.innerHTML = "Status distribution figure is not available due to lack of data!!!";
-                document.getElementById('status_figure_div').appendChild(p_tag);
+                p_tag.innerHTML = "CN summary table is not available due to lack of data!!!";
+                document.getElementById('cn_summary_table_div').appendChild(p_tag);
+                // var p_tag = document.createElement('p');
+                // p_tag.innerHTML = "Status distribution figure is not available due to lack of data!!!";
+                // document.getElementById('status_figure_div').appendChild(p_tag);
             }
         });
     } else {
         document.getElementById('cn_figure_div').innerText="";
-        document.getElementById('status_figure_div').innerHTML="";
+        document.getElementById('cn_summary_table_div').innerHTML="";
+        // document.getElementById('status_figure_div').innerHTML="";
         var p_tag = document.createElement('p');
         p_tag.innerHTML = "CN distribution figure is not available due to lack of data!!!";
         document.getElementById('cn_figure_div').appendChild(p_tag);
         var p_tag = document.createElement('p');
-        p_tag.innerHTML = "Status distribution figure is not available due to lack of data!!!";
-        document.getElementById('status_figure_div').appendChild(p_tag);
+        p_tag.innerHTML = "CN summary table is not available due to lack of data!!!";
+        document.getElementById('cn_summary_table_div').appendChild(p_tag);
+        // var p_tag = document.createElement('p');
+        // p_tag.innerHTML = "Status distribution figure is not available due to lack of data!!!";
+        // document.getElementById('status_figure_div').appendChild(p_tag);
     }
 
 </script>

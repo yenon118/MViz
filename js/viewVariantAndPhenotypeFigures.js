@@ -38,6 +38,147 @@ function processQueriedData(jsonObject, phenotype) {
 }
 
 
+function summarizeQueriedData(jsonObject, phenotype, selectedKey, isFloat){
+    var summaryObject = {};
+
+    // Get accession count
+    var selectedKeyArray = [];
+    for (let i = 0; i < jsonObject.length; i++) {
+        if (jsonObject[i][selectedKey] != undefined && jsonObject[i][selectedKey] != null && jsonObject[i][selectedKey] != "" && jsonObject[i][selectedKey] != "null") {
+            if (!selectedKeyArray.includes(jsonObject[i][selectedKey])) {
+                selectedKeyArray.push(jsonObject[i][selectedKey]);
+            }
+        }
+    }
+    selectedKeyArray.sort();
+    for (let i = 0; i < selectedKeyArray.length; i++) {
+        summaryObject[selectedKeyArray[i]] = {
+            "Total_Number_of_Phenotype": 0,
+            "Number_of_Accession_with_Phenotype": 0,
+            "Number_of_Accession_without_Phenotype": 0,
+        };
+    }
+    var accessionArray = [];
+    for (let i = 0; i < jsonObject.length; i++) {
+        if(jsonObject[i][selectedKey] != null && jsonObject[i]["Accession"] != null) {
+            if (!accessionArray.includes(jsonObject[i]["Accession"])) {
+                if (jsonObject[i][phenotype] == "" || jsonObject[i][phenotype] === null || jsonObject[i][phenotype] == "null" || jsonObject[i][phenotype] == "-" || jsonObject[i][phenotype] == "_" || jsonObject[i][phenotype] == "NA") {
+                    summaryObject[jsonObject[i][selectedKey]]["Number_of_Accession_without_Phenotype"] += 1;
+                } else {
+                    summaryObject[jsonObject[i][selectedKey]]["Number_of_Accession_with_Phenotype"] += 1;
+                }
+                accessionArray.push(jsonObject[i]["Accession"]);
+            }
+        }
+    }
+
+    // Process data
+    jsonObject = processQueriedData(jsonObject, phenotype);
+
+    if (isFloat) {
+        for (let i = 0; i < jsonObject.length; i++) {
+            if (jsonObject[i][selectedKey] != undefined && jsonObject[i][selectedKey] != null && jsonObject[i][selectedKey] != "" && jsonObject[i][selectedKey] != "null") {
+                if (jsonObject[i][phenotype] != undefined && jsonObject[i][phenotype] != null && jsonObject[i][phenotype] != "" && jsonObject[i][phenotype] != "null") {
+                    summaryObject[jsonObject[i][selectedKey]]["Total_Number_of_Phenotype"] += 1;
+                }
+            }
+        }
+    } else {
+        // Get phenotype count
+        var phenotypeCountColumnArray = [];
+        var phenotypePercentColumnArray = [];
+        for (let i = 0; i < jsonObject.length; i++) {
+            if (jsonObject[i][phenotype] != undefined && jsonObject[i][phenotype] != null && jsonObject[i][phenotype] != "" && jsonObject[i][phenotype] != "null") {
+                countColumnName = "Count_of_" + jsonObject[i][phenotype];
+                percentColumnName = "Percent_of_" + jsonObject[i][phenotype];
+                if (!phenotypeCountColumnArray.includes(countColumnName)) {
+                    phenotypeCountColumnArray.push(countColumnName);
+                }
+                if (!phenotypePercentColumnArray.includes(percentColumnName)) {
+                    phenotypePercentColumnArray.push(percentColumnName);
+                }
+            }
+        }
+        phenotypeCountColumnArray.sort();
+        phenotypePercentColumnArray.sort();
+        for (let i = 0; i < selectedKeyArray.length; i++) {
+            for (let j = 0; j < phenotypeCountColumnArray.length; j++) {
+                summaryObject[selectedKeyArray[i]][phenotypeCountColumnArray[j]] = 0;
+                summaryObject[selectedKeyArray[i]][phenotypePercentColumnArray[j]] = 0;
+            }
+        }
+        for (let i = 0; i < jsonObject.length; i++) {
+            if (jsonObject[i][selectedKey] != undefined && jsonObject[i][selectedKey] != null && jsonObject[i][selectedKey] != "" && jsonObject[i][selectedKey] != "null") {
+                if (jsonObject[i][phenotype] != undefined && jsonObject[i][phenotype] != null && jsonObject[i][phenotype] != "" && jsonObject[i][phenotype] != "null") {
+                    countColumnName = "Count_of_" + jsonObject[i][phenotype];
+                    percentColumnName = "Percent_of_" + jsonObject[i][phenotype];
+                    summaryObject[jsonObject[i][selectedKey]][countColumnName] += 1;
+                    summaryObject[jsonObject[i][selectedKey]][percentColumnName] += 1;
+                    summaryObject[jsonObject[i][selectedKey]]["Total_Number_of_Phenotype"] += 1;
+                }
+            }
+        }
+
+        // Calculate percentage
+        for (let i = 0; i < selectedKeyArray.length; i++) {
+            for (let j = 0; j < phenotypePercentColumnArray.length; j++) {
+                summaryObject[selectedKeyArray[i]][phenotypePercentColumnArray[j]] =  100 * summaryObject[selectedKeyArray[i]][phenotypePercentColumnArray[j]] / summaryObject[selectedKeyArray[i]]["Total_Number_of_Phenotype"];
+                if (summaryObject[selectedKeyArray[i]][phenotypePercentColumnArray[j]] > 0) {
+                    summaryObject[selectedKeyArray[i]][phenotypePercentColumnArray[j]] = Math.round(summaryObject[selectedKeyArray[i]][phenotypePercentColumnArray[j]] * 100) / 100;
+                }
+            }
+        }
+    }
+    
+    // Convert dict to array
+    var summaryArray = [];
+    for (let i = 0; i < selectedKeyArray.length; i++) {
+        var columnKeys = Object.keys(summaryObject[selectedKeyArray[i]]);
+        var temp_dict = {};
+        temp_dict[selectedKey] = selectedKeyArray[i];
+        for (let j = 0; j < columnKeys.length; j++) {
+            temp_dict[columnKeys[j]] = summaryObject[selectedKeyArray[i]][columnKeys[j]];
+        }
+        summaryArray.push(temp_dict);
+    }
+
+    return summaryArray;
+}
+
+
+function constructInfoTable(res) {
+
+    // Create table
+    let detail_table = document.createElement("table");
+    detail_table.setAttribute("style", "text-align:center; border:3px solid #000;");
+    let detail_header_tr = document.createElement("tr");
+
+    let header_array = Object.keys(res[0]);
+    for (let i = 0; i < header_array.length; i++) {
+        var detail_th = document.createElement("th");
+        detail_th.setAttribute("style", "border:1px solid black; min-width:80px; height:18.5px;");
+        detail_th.innerHTML = header_array[i];
+        detail_header_tr.appendChild(detail_th);
+    }
+
+    detail_table.appendChild(detail_header_tr);
+
+    for (let i = 0; i < res.length; i++) {
+        var detail_tr = document.createElement("tr");
+        detail_tr.style.backgroundColor = ((i%2) ? "#FFFFFF" : "#DDFFDD");
+        for (let j = 0; j < header_array.length; j++) {
+            var detail_td = document.createElement("td");
+            detail_td.setAttribute("style", "border:1px solid black; min-width:80px; height:18.5px;");
+            detail_td.innerHTML = res[i][header_array[j]];
+            detail_tr.appendChild(detail_td);
+        }
+        detail_table.appendChild(detail_tr);
+    }
+
+    return detail_table;
+}
+
+
 function collectDataForFigure(jsonObject, phenotype, selectedKey) {
 
     var dict = {};
@@ -74,7 +215,7 @@ function collectDataForFigure(jsonObject, phenotype, selectedKey) {
 }
 
 
-function plotFigure(jsonObject, keyColumn, divID) {
+function plotFigure(jsonObject, keyColumn, title, divID) {
 
     var data = [];
     var keys = Object.keys(jsonObject['Data']);
@@ -83,7 +224,7 @@ function plotFigure(jsonObject, keyColumn, divID) {
         xAxisTitle = "Phenotype Measurement";
         yAxisTitle = keyColumn;
         // Update title
-        title = keyColumn + " Box Plot";
+        title = title + " Box Plot";
         // Format the data to fit figure requirements
         if (jsonObject['Data']) {
             for (let i = 0; i < keys.length; i++) {
@@ -146,7 +287,7 @@ function plotFigure(jsonObject, keyColumn, divID) {
         xAxisTitle = keyColumn;
         yAxisTitle = "Accession Count";
         // Update title
-        title = keyColumn + " Bar Plot";
+        title = title + " Bar Plot";
         // Reformat data for bar plot
         var barData = {};
         if (jsonObject['Data']) {
