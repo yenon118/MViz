@@ -94,16 +94,21 @@ $phenotype = $info['phenotype'];
                     document.getElementById("cn_figure_div").style.minHeight = "800px";
                     // document.getElementById("status_figure_div").style.minHeight = "800px";
 
-                    var result_arr = processQueriedData(res, phenotype);
+                    // Summarize data
+                    var result_dict = summarizeQueriedData(
+                        JSON.parse(JSON.stringify(res)), 
+                        phenotype, 
+                        'CN'
+                    );
+
+                    var result_arr = result_dict['Data'];
+                    var summary_array = result_dict['Summary'];
 
                     var cnData = collectDataForFigure(result_arr, phenotype, 'CN');
                     // var statusData = collectDataForFigure(result_arr, phenotype, 'Status');
 
                     plotFigure(cnData, 'CN', 'CN', 'cn_figure_div')
                     // plotFigure(statusData, 'Status', 'Status', 'status_figure_div')
-
-                    // Summarize data
-                    var summary_array = summarizeQueriedData(JSON.parse(JSON.stringify(res)), phenotype, 'CN', cnData['IsFloat']);
 
                     // Render summarized data
                     document.getElementById('cn_summary_table_div').innerText = "";

@@ -1087,12 +1087,12 @@ class KBCToolsMVizController extends Controller
             }
             $query_str = $query_str . "')) ";
         }
-        $query_str = $query_str . "AND (G." . $phenotype . " IS NOT NULL) ";
-        $query_str = $query_str . "AND (G." . $phenotype . " != '') ";
-        $query_str = $query_str . "AND (G." . $phenotype . " != '-') ";
-        $query_str = $query_str . "AND (G." . $phenotype . " != '_') ";
-        $query_str = $query_str . "AND (G." . $phenotype . " != 'NA') ";
-        $query_str = $query_str . "AND (G." . $phenotype . " != 'NA') ";
+        // $query_str = $query_str . "AND (G." . $phenotype . " IS NOT NULL) ";
+        // $query_str = $query_str . "AND (G." . $phenotype . " != '') ";
+        // $query_str = $query_str . "AND (G." . $phenotype . " != '-') ";
+        // $query_str = $query_str . "AND (G." . $phenotype . " != '_') ";
+        // $query_str = $query_str . "AND (G." . $phenotype . " != 'NA') ";
+        // $query_str = $query_str . "AND (G." . $phenotype . " != 'NA') ";
         $query_str = $query_str . "ORDER BY CNV.CN, CNV.Chromosome, CNV.Start, CNV.End; ";
 
         $result_arr = DB::connection($db)->select($query_str);

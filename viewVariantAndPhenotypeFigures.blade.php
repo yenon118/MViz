@@ -76,14 +76,19 @@ $phenotype = $info['phenotype'];
 
                     document.getElementById("genotype_figure_div").style.minHeight = "800px";
 
-                    var result_arr = processQueriedData(res, phenotype);
+                    // Summarize data
+                    var result_dict = summarizeQueriedData(
+                        JSON.parse(JSON.stringify(res)), 
+                        phenotype, 
+                        'Genotype'
+                    );
+
+                    var result_arr = result_dict['Data'];
+                    var summary_array = result_dict['Summary'];
 
                     var genotypeData = collectDataForFigure(result_arr, phenotype, 'Genotype');
 
                     plotFigure(genotypeData, 'Genotype', 'Genotype', 'genotype_figure_div');
-
-                    // Summarize data
-                    var summary_array = summarizeQueriedData(JSON.parse(JSON.stringify(res)), phenotype, 'Genotype', genotypeData['IsFloat']);
 
                     // Render summarized data
                     document.getElementById('genotype_summary_table_div').innerText = "";

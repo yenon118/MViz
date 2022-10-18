@@ -1,5 +1,9 @@
 function processQueriedData(jsonObject, phenotype) {
 
+    const specialChars = /[`!@#$%^&*()_+\-=\[\]{};':"\\|,<>\/?~]/;
+    const alphabetChars = /[a-zA-Z]+/;
+
+    // Drop empty or incorrect data
     let idx_array = [];
     for (let i = 0; i < jsonObject.length; i++) {
         if (jsonObject[i][phenotype] == "" || jsonObject[i][phenotype] === null || jsonObject[i][phenotype] == "null" || jsonObject[i][phenotype] == "-" || jsonObject[i][phenotype] == "_" || jsonObject[i][phenotype] == "NA") {
@@ -16,20 +20,57 @@ function processQueriedData(jsonObject, phenotype) {
             if (jsonObject[i][phenotype].includes(',')) {
                 var element = jsonObject[i];
                 var phenotype_array = element[phenotype].split(",");
-                // Remove duplicates
-                var unique_phenotype_array = phenotype_array.filter(function(c, index) {
-                    return phenotype_array.indexOf(c) === index;
-                });
-                // Add new records to the array
-                for (let j = 0; j < unique_phenotype_array.length; j++) {
-                    if (j === 0) {
-                        element[phenotype] = unique_phenotype_array[j];
+                var numericFlag = true;
+
+                // Check if data is numeric 
+                for (let j = 0; j < phenotype_array.length; j++) {
+                    if (isNaN(parseFloat(phenotype_array[j]))){
+                        numericFlag = false;
+                        break;
                     } else {
-                        var new_element = JSON.parse(JSON.stringify(element));
-                        new_element[phenotype] = unique_phenotype_array[j];
-                        jsonObject.push(new_element);
+                        if (specialChars.test(phenotype_array[j])) {
+                            numericFlag = false;
+                            break;
+                        }
+                        if (alphabetChars.test(phenotype_array[j])) {
+                            numericFlag = false;
+                            break;
+                        }
                     }
                 }
+
+                if (numericFlag) {
+                    var arithmetic_mean = 0
+                    var array_length = 0
+                    // Calculate arithmetic mean
+                    for (let j = 0; j < phenotype_array.length; j++) {
+                        if (!isNaN(parseFloat(phenotype_array[j]))){
+                            arithmetic_mean += parseFloat(phenotype_array[j]);
+                            array_length += 1;
+                        }
+                    }
+                    arithmetic_mean = arithmetic_mean / array_length;
+                    element[phenotype] = arithmetic_mean;
+                } else {
+                    // Remove duplicates
+                    var unique_phenotype_array = phenotype_array.filter(function(c, index) {
+                        return phenotype_array.indexOf(c) === index;
+                    });
+                    // Add new records to the array
+                    for (let j = 0; j < unique_phenotype_array.length; j++) {
+                        if (j === 0) {
+                            element[phenotype] = unique_phenotype_array[j];
+                        } else {
+                            var new_element = JSON.parse(JSON.stringify(element));
+                            new_element[phenotype] = unique_phenotype_array[j];
+                            jsonObject.push(new_element);
+                        }
+                    }
+                }
+
+                // Reset numeric flag
+                numericFlag = true;
+
             }
         }
     }
@@ -38,25 +79,42 @@ function processQueriedData(jsonObject, phenotype) {
 }
 
 
-function summarizeQueriedData(jsonObject, phenotype, selectedKey, isFloat){
+function summarizeQueriedData(jsonObject, phenotype, selectedKey){
+
+    const specialChars = /[`!@#$%^&*()_+\-=\[\]{};':"\\|,<>\/?~]/;
+    const alphabetChars = /[a-zA-Z]+/;
+
+    var isFloat = true;
     var summaryObject = {};
 
     // Get accession count
     var selectedKeyArray = [];
+    var categoryArray = [];
     for (let i = 0; i < jsonObject.length; i++) {
         if (jsonObject[i][selectedKey] != undefined && jsonObject[i][selectedKey] != null && jsonObject[i][selectedKey] != "" && jsonObject[i][selectedKey] != "null") {
             if (!selectedKeyArray.includes(jsonObject[i][selectedKey])) {
                 selectedKeyArray.push(jsonObject[i][selectedKey]);
+                if (jsonObject[i].hasOwnProperty('Category')) {
+                    categoryArray.push(jsonObject[i]['Category']);
+                }
             }
         }
     }
-    selectedKeyArray.sort();
     for (let i = 0; i < selectedKeyArray.length; i++) {
-        summaryObject[selectedKeyArray[i]] = {
-            "Total_Number_of_Phenotype": 0,
-            "Number_of_Accession_with_Phenotype": 0,
-            "Number_of_Accession_without_Phenotype": 0,
-        };
+        if (categoryArray.length > 0) {
+            summaryObject[selectedKeyArray[i]] = {
+                "Category": categoryArray[i],
+                "Total_Number_of_Phenotype": 0,
+                "Number_of_Accession_with_Phenotype": 0,
+                "Number_of_Accession_without_Phenotype": 0
+            }
+        } else {
+            summaryObject[selectedKeyArray[i]] = {
+                "Total_Number_of_Phenotype": 0,
+                "Number_of_Accession_with_Phenotype": 0,
+                "Number_of_Accession_without_Phenotype": 0,
+            };
+        }
     }
     var accessionArray = [];
     for (let i = 0; i < jsonObject.length; i++) {
@@ -73,13 +131,32 @@ function summarizeQueriedData(jsonObject, phenotype, selectedKey, isFloat){
     }
 
     // Process data
-    jsonObject = processQueriedData(jsonObject, phenotype);
+    var processedJsonObject = processQueriedData(jsonObject, phenotype);
 
+    // Check whether data is float
+    for (let i = 0; i < processedJsonObject.length; i++) {
+        if (isNaN(parseFloat(processedJsonObject[i][phenotype]))){
+            isFloat = false;
+            break;
+        } else {
+            if (specialChars.test(processedJsonObject[i][phenotype])) {
+                isFloat = false;
+                break;
+            }
+            if (alphabetChars.test(processedJsonObject[i][phenotype])) {
+                isFloat = false;
+                break;
+            }
+        }
+    }
+
+    var totalNumberOfPhenotypes = 0;
     if (isFloat) {
-        for (let i = 0; i < jsonObject.length; i++) {
-            if (jsonObject[i][selectedKey] != undefined && jsonObject[i][selectedKey] != null && jsonObject[i][selectedKey] != "" && jsonObject[i][selectedKey] != "null") {
-                if (jsonObject[i][phenotype] != undefined && jsonObject[i][phenotype] != null && jsonObject[i][phenotype] != "" && jsonObject[i][phenotype] != "null") {
-                    summaryObject[jsonObject[i][selectedKey]]["Total_Number_of_Phenotype"] += 1;
+        for (let i = 0; i < processedJsonObject.length; i++) {
+            if (processedJsonObject[i][selectedKey] != undefined && processedJsonObject[i][selectedKey] != null && processedJsonObject[i][selectedKey] != "" && processedJsonObject[i][selectedKey] != "null") {
+                if (processedJsonObject[i][phenotype] != undefined && processedJsonObject[i][phenotype] != null && processedJsonObject[i][phenotype] != "" && processedJsonObject[i][phenotype] != "null") {
+                    summaryObject[processedJsonObject[i][selectedKey]]["Total_Number_of_Phenotype"] += 1;
+                    totalNumberOfPhenotypes += 1;
                 }
             }
         }
@@ -87,10 +164,10 @@ function summarizeQueriedData(jsonObject, phenotype, selectedKey, isFloat){
         // Get phenotype count
         var phenotypeCountColumnArray = [];
         var phenotypePercentColumnArray = [];
-        for (let i = 0; i < jsonObject.length; i++) {
-            if (jsonObject[i][phenotype] != undefined && jsonObject[i][phenotype] != null && jsonObject[i][phenotype] != "" && jsonObject[i][phenotype] != "null") {
-                countColumnName = "Count_of_" + jsonObject[i][phenotype];
-                percentColumnName = "Percent_of_" + jsonObject[i][phenotype];
+        for (let i = 0; i < processedJsonObject.length; i++) {
+            if (processedJsonObject[i][phenotype] != undefined && processedJsonObject[i][phenotype] != null && processedJsonObject[i][phenotype] != "" && processedJsonObject[i][phenotype] != "null") {
+                countColumnName = "Count_of_" + processedJsonObject[i][phenotype];
+                percentColumnName = "Percentage_of_" + processedJsonObject[i][phenotype];
                 if (!phenotypeCountColumnArray.includes(countColumnName)) {
                     phenotypeCountColumnArray.push(countColumnName);
                 }
@@ -107,14 +184,15 @@ function summarizeQueriedData(jsonObject, phenotype, selectedKey, isFloat){
                 summaryObject[selectedKeyArray[i]][phenotypePercentColumnArray[j]] = 0;
             }
         }
-        for (let i = 0; i < jsonObject.length; i++) {
-            if (jsonObject[i][selectedKey] != undefined && jsonObject[i][selectedKey] != null && jsonObject[i][selectedKey] != "" && jsonObject[i][selectedKey] != "null") {
-                if (jsonObject[i][phenotype] != undefined && jsonObject[i][phenotype] != null && jsonObject[i][phenotype] != "" && jsonObject[i][phenotype] != "null") {
-                    countColumnName = "Count_of_" + jsonObject[i][phenotype];
-                    percentColumnName = "Percent_of_" + jsonObject[i][phenotype];
-                    summaryObject[jsonObject[i][selectedKey]][countColumnName] += 1;
-                    summaryObject[jsonObject[i][selectedKey]][percentColumnName] += 1;
-                    summaryObject[jsonObject[i][selectedKey]]["Total_Number_of_Phenotype"] += 1;
+        for (let i = 0; i < processedJsonObject.length; i++) {
+            if (processedJsonObject[i][selectedKey] != undefined && processedJsonObject[i][selectedKey] != null && processedJsonObject[i][selectedKey] != "" && processedJsonObject[i][selectedKey] != "null") {
+                if (processedJsonObject[i][phenotype] != undefined && processedJsonObject[i][phenotype] != null && processedJsonObject[i][phenotype] != "" && processedJsonObject[i][phenotype] != "null") {
+                    countColumnName = "Count_of_" + processedJsonObject[i][phenotype];
+                    percentColumnName = "Percentage_of_" + processedJsonObject[i][phenotype];
+                    summaryObject[processedJsonObject[i][selectedKey]][countColumnName] += 1;
+                    summaryObject[processedJsonObject[i][selectedKey]][percentColumnName] += 1;
+                    summaryObject[processedJsonObject[i][selectedKey]]["Total_Number_of_Phenotype"] += 1;
+                    totalNumberOfPhenotypes += 1;
                 }
             }
         }
@@ -122,14 +200,14 @@ function summarizeQueriedData(jsonObject, phenotype, selectedKey, isFloat){
         // Calculate percentage
         for (let i = 0; i < selectedKeyArray.length; i++) {
             for (let j = 0; j < phenotypePercentColumnArray.length; j++) {
-                summaryObject[selectedKeyArray[i]][phenotypePercentColumnArray[j]] =  100 * summaryObject[selectedKeyArray[i]][phenotypePercentColumnArray[j]] / summaryObject[selectedKeyArray[i]]["Total_Number_of_Phenotype"];
+                summaryObject[selectedKeyArray[i]][phenotypePercentColumnArray[j]] =  100 * summaryObject[selectedKeyArray[i]][phenotypePercentColumnArray[j]] / totalNumberOfPhenotypes;
                 if (summaryObject[selectedKeyArray[i]][phenotypePercentColumnArray[j]] > 0) {
                     summaryObject[selectedKeyArray[i]][phenotypePercentColumnArray[j]] = Math.round(summaryObject[selectedKeyArray[i]][phenotypePercentColumnArray[j]] * 100) / 100;
                 }
             }
         }
     }
-    
+
     // Convert dict to array
     var summaryArray = [];
     for (let i = 0; i < selectedKeyArray.length; i++) {
@@ -137,12 +215,51 @@ function summarizeQueriedData(jsonObject, phenotype, selectedKey, isFloat){
         var temp_dict = {};
         temp_dict[selectedKey] = selectedKeyArray[i];
         for (let j = 0; j < columnKeys.length; j++) {
-            temp_dict[columnKeys[j]] = summaryObject[selectedKeyArray[i]][columnKeys[j]];
+            if (columnKeys[j] != "Total_Number_of_Phenotype") {
+                temp_dict[columnKeys[j]] = summaryObject[selectedKeyArray[i]][columnKeys[j]];
+            }
         }
         summaryArray.push(temp_dict);
     }
 
-    return summaryArray;
+    return {'Data':processedJsonObject, 'IsFloat':isFloat, 'Summary': summaryArray};
+}
+
+
+function collectDataForFigure(jsonObject, phenotype, selectedKey) {
+
+    var dict = {};
+    var isFloat = true;
+    const specialChars = /[`!@#$%^&*()_+\-=\[\]{};':"\\|,<>\/?~]/;
+    const alphabetChars = /[a-zA-Z]+/;
+
+    for (let i = 0; i < jsonObject.length; i++) {
+        var val = jsonObject[i][phenotype];
+        // Trim data if it is a string
+        if (typeof val === 'string' || val instanceof String) {
+            val = val.trim();
+        }
+        // Parse value to float if possible
+        if (isNaN(parseFloat(val))){
+            isFloat = false
+        } else {
+            if (specialChars.test(val) || alphabetChars.test(val)) {
+                isFloat = false
+            } else {
+                val = parseFloat(val)
+            }
+        }
+        // Add data into dictionary
+        if ((!(jsonObject[i][selectedKey] === undefined)) && (jsonObject[i][selectedKey] != null) && (jsonObject[i][selectedKey] != "null") && (jsonObject[i][selectedKey] != "")) {
+            if (!(dict.hasOwnProperty(jsonObject[i][selectedKey]))) {
+                dict[jsonObject[i][selectedKey]] = [val];
+            } else {
+                dict[jsonObject[i][selectedKey]].push(val);
+            }
+        }
+    }
+
+    return {'Data':dict, 'IsFloat':isFloat};
 }
 
 
@@ -176,42 +293,6 @@ function constructInfoTable(res) {
     }
 
     return detail_table;
-}
-
-
-function collectDataForFigure(jsonObject, phenotype, selectedKey) {
-
-    var dict = {};
-    var isFloat = true;
-    const specialChars = /[`!@#$%^&*()_+\-=\[\]{};':"\\|,<>\/?~]/;
-
-    for (let i = 0; i < jsonObject.length; i++) {
-        var val = jsonObject[i][phenotype];
-        // Trim data if it is a string
-        if (typeof val === 'string' || val instanceof String) {
-            val = val.trim();
-        }
-        // Parse value to float if possible
-        if (!isNaN(parseFloat(val))){
-            if (!specialChars.test(val)){
-                val = parseFloat(val)
-            } else {
-                isFloat = false
-            }
-        } else {
-            isFloat = false
-        }
-        // Add data into dictionary
-        if ((!(jsonObject[i][selectedKey] === undefined)) && (jsonObject[i][selectedKey] != null) && (jsonObject[i][selectedKey] != "null") && (jsonObject[i][selectedKey] != "")) {
-            if (!(dict.hasOwnProperty(jsonObject[i][selectedKey]))) {
-                dict[jsonObject[i][selectedKey]] = [val];
-            } else {
-                dict[jsonObject[i][selectedKey]].push(val);
-            }
-        }
-    }
-
-    return {'Data':dict, 'IsFloat':isFloat};
 }
 
 
