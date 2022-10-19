@@ -144,7 +144,7 @@ function constructInfoTable(organism, res, chromosome, position_start, position_
     let header_array = Object.keys(res[0]);
     for (let i = 0; i < header_array.length; i++) {
 
-        if (header_array[i] == "Chromosome" || header_array[i] == "Start" || header_array[i] == "End" || header_array[i] == "Width" || header_array[i] == "Strand" || header_array[i] == "Accession" || header_array[i] == "CN" || header_array[i] == "Status") {
+        if (header_array[i] == "Chromosome" || header_array[i] == "Start" || header_array[i] == "End" || header_array[i] == "Width" || header_array[i] == "Strand" || header_array[i] == "Accession" || header_array[i] == "CN" || header_array[i] == "Status" || header_array[i] == "Improvement_Status" || header_array[i] == "Admixture_Group" || header_array[i] == "Subpopulation") {
             var detail_th = document.createElement("th");
             detail_th.setAttribute("style", "border:1px solid black; min-width:80px; height:18.5px;");
             detail_th.innerHTML = header_array[i];

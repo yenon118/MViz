@@ -1,6 +1,6 @@
 function processQueriedData(jsonObject, phenotype) {
 
-    const specialChars = /[`!@#$%^&*()_+\-=\[\]{};':"\\|,<>\/?~]/;
+    const specialChars = /[`!@#$%^&*()_+=\[\]{};':"\\|,<>\/?~]/;
     const alphabetChars = /[a-zA-Z]+/;
 
     // Drop empty or incorrect data
@@ -81,7 +81,7 @@ function processQueriedData(jsonObject, phenotype) {
 
 function summarizeQueriedData(jsonObject, phenotype, selectedKey){
 
-    const specialChars = /[`!@#$%^&*()_+\-=\[\]{};':"\\|,<>\/?~]/;
+    const specialChars = /[`!@#$%^&*()_+=\[\]{};':"\\|,<>\/?~]/;
     const alphabetChars = /[a-zA-Z]+/;
 
     var isFloat = true;
@@ -230,7 +230,7 @@ function collectDataForFigure(jsonObject, phenotype, selectedKey) {
 
     var dict = {};
     var isFloat = true;
-    const specialChars = /[`!@#$%^&*()_+\-=\[\]{};':"\\|,<>\/?~]/;
+    const specialChars = /[`!@#$%^&*()_+=\[\]{};':"\\|,<>\/?~]/;
     const alphabetChars = /[a-zA-Z]+/;
 
     for (let i = 0; i < jsonObject.length; i++) {

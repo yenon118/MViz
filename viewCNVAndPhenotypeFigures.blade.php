@@ -57,6 +57,8 @@ $phenotype = $info['phenotype'];
     <div id="cn_figure_div">Loading CN plot...</div>
     <div id="cn_summary_table_div">Loading CN summary table...</div>
 </div>
+<hr />
+<div id="improvement_status_summary_figure_div"></div>
 <!-- <div id="status_figure_div">Loading status plot...</div> -->
 
 </body>
@@ -71,6 +73,17 @@ $phenotype = $info['phenotype'];
     var cnv_data_option = <?php if(isset($cnv_data_option)) {echo json_encode($cnv_data_option, JSON_INVALID_UTF8_IGNORE);} else {echo "";}?>;
     var phenotype = <?php if(isset($phenotype)) {echo json_encode($phenotype, JSON_INVALID_UTF8_IGNORE);} else {echo "";}?>;
     var cn_array = <?php if(isset($cn_array) && is_array($cn_array) && !empty($cn_array)) {echo json_encode($cn_array, JSON_INVALID_UTF8_IGNORE);} else {echo "";}?>;
+
+    if (organism == "Osativa") {
+        document.getElementById('improvement_status_summary_figure_div').innerHTML = "Loading subpopulation summary plot...";
+        summaryPhenotype = "Subpopulation";
+    } else if (organism == "Athaliana") {
+        document.getElementById('improvement_status_summary_figure_div').innerHTML = "Loading admixture group summary plot...";
+        summaryPhenotype = "Admixture_Group";
+    } else if (organism == "Zmays") {
+        document.getElementById('improvement_status_summary_figure_div').innerHTML = "Loading improvement status summary plot...";
+        summaryPhenotype = "Improvement_Status";
+    }
 
     if (organism && chromosome && position_start && position_end && cnv_data_option && phenotype && cn_array.length > 0) {
         $.ajax({
@@ -105,10 +118,12 @@ $phenotype = $info['phenotype'];
                     var summary_array = result_dict['Summary'];
 
                     var cnData = collectDataForFigure(result_arr, phenotype, 'CN');
+                    var cnAndImprovementStatusData = collectDataForFigure(result_arr, summaryPhenotype, 'CN');
                     // var statusData = collectDataForFigure(result_arr, phenotype, 'Status');
 
-                    plotFigure(cnData, 'CN', 'CN', 'cn_figure_div')
-                    // plotFigure(statusData, 'Status', 'Status', 'status_figure_div')
+                    plotFigure(cnData, 'CN', 'CN', 'cn_figure_div');
+                    plotFigure(cnAndImprovementStatusData, 'CN', summaryPhenotype+'_Summary', 'improvement_status_summary_figure_div');
+                    // plotFigure(statusData, 'Status', 'Status', 'status_figure_div');
 
                     // Render summarized data
                     document.getElementById('cn_summary_table_div').innerText = "";
@@ -123,6 +138,7 @@ $phenotype = $info['phenotype'];
                 console.log('Error with code ' + xhr.status + ': ' + xhr.statusText);
                 document.getElementById('cn_figure_div').innerText="";
                 document.getElementById('cn_summary_table_div').innerHTML="";
+                document.getElementById('improvement_status_summary_figure_div').innerHTML="";
                 // document.getElementById('status_figure_div').innerHTML="";
                 var p_tag = document.createElement('p');
                 p_tag.innerHTML = "CN distribution figure is not available due to lack of data!!!";
@@ -130,6 +146,9 @@ $phenotype = $info['phenotype'];
                 var p_tag = document.createElement('p');
                 p_tag.innerHTML = "CN summary table is not available due to lack of data!!!";
                 document.getElementById('cn_summary_table_div').appendChild(p_tag);
+                var p_tag = document.createElement('p');
+                p_tag.innerHTML = summaryPhenotype + " summary figure is not available due to lack of data!!!";
+                document.getElementById('improvement_status_summary_figure_div').appendChild(p_tag);
                 // var p_tag = document.createElement('p');
                 // p_tag.innerHTML = "Status distribution figure is not available due to lack of data!!!";
                 // document.getElementById('status_figure_div').appendChild(p_tag);
@@ -138,6 +157,7 @@ $phenotype = $info['phenotype'];
     } else {
         document.getElementById('cn_figure_div').innerText="";
         document.getElementById('cn_summary_table_div').innerHTML="";
+        document.getElementById('improvement_status_summary_figure_div').innerHTML="";
         // document.getElementById('status_figure_div').innerHTML="";
         var p_tag = document.createElement('p');
         p_tag.innerHTML = "CN distribution figure is not available due to lack of data!!!";
@@ -145,6 +165,9 @@ $phenotype = $info['phenotype'];
         var p_tag = document.createElement('p');
         p_tag.innerHTML = "CN summary table is not available due to lack of data!!!";
         document.getElementById('cn_summary_table_div').appendChild(p_tag);
+        var p_tag = document.createElement('p');
+        p_tag.innerHTML = summaryPhenotype + " summary figure is not available due to lack of data!!!";
+        document.getElementById('improvement_status_summary_figure_div').appendChild(p_tag);
         // var p_tag = document.createElement('p');
         // p_tag.innerHTML = "Status distribution figure is not available due to lack of data!!!";
         // document.getElementById('status_figure_div').appendChild(p_tag);

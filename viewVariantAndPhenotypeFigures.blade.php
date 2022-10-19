@@ -45,6 +45,8 @@ $phenotype = $info['phenotype'];
     <div id="genotype_figure_div">Loading genotype plot...</div>
     <div id="genotype_summary_table_div">Loading genotype summary table...</div>
 </div>
+<hr />
+<div id="improvement_status_summary_figure_div"></div>
 
 </body>
 
@@ -56,6 +58,17 @@ $phenotype = $info['phenotype'];
     var position = <?php if(isset($position)) {echo json_encode($position, JSON_INVALID_UTF8_IGNORE);} else {echo "";}?>;
     var phenotype = <?php if(isset($phenotype)) {echo json_encode($phenotype, JSON_INVALID_UTF8_IGNORE);} else {echo "";}?>;
     var genotype_array = <?php if(isset($genotype_array) && is_array($genotype_array) && !empty($genotype_array)) {echo json_encode($genotype_array, JSON_INVALID_UTF8_IGNORE);} else {echo "";}?>;
+
+    if (organism == "Osativa") {
+        document.getElementById('improvement_status_summary_figure_div').innerHTML = "Loading subpopulation summary plot...";
+        summaryPhenotype = "Subpopulation";
+    } else if (organism == "Athaliana") {
+        document.getElementById('improvement_status_summary_figure_div').innerHTML = "Loading admixture group summary plot...";
+        summaryPhenotype = "Admixture_Group";
+    } else if (organism == "Zmays") {
+        document.getElementById('improvement_status_summary_figure_div').innerHTML = "Loading improvement status summary plot...";
+        summaryPhenotype = "Improvement_Status";
+    }
 
     if (organism && chromosome && position && phenotype && genotype_array.length > 0) {
         $.ajax({
@@ -87,8 +100,10 @@ $phenotype = $info['phenotype'];
                     var summary_array = result_dict['Summary'];
 
                     var genotypeData = collectDataForFigure(result_arr, phenotype, 'Genotype');
+                    var genotypeAndImprovementStatusData = collectDataForFigure(result_arr, summaryPhenotype, 'Genotype');
 
                     plotFigure(genotypeData, 'Genotype', 'Genotype', 'genotype_figure_div');
+                    plotFigure(genotypeAndImprovementStatusData, 'Genotype', summaryPhenotype+'_Summary', 'improvement_status_summary_figure_div');
 
                     // Render summarized data
                     document.getElementById('genotype_summary_table_div').innerText = "";
@@ -103,23 +118,31 @@ $phenotype = $info['phenotype'];
                 console.log('Error with code ' + xhr.status + ': ' + xhr.statusText);
                 document.getElementById('genotype_figure_div').innerText="";
                 document.getElementById('genotype_summary_table_div').innerHTML="";
+                document.getElementById('improvement_status_summary_figure_div').innerHTML="";
                 var p_tag = document.createElement('p');
                 p_tag.innerHTML = "Genotype distribution figure is not available due to lack of data!!!";
                 document.getElementById('genotype_figure_div').appendChild(p_tag);
                 var p_tag = document.createElement('p');
                 p_tag.innerHTML = "Genotype summary table is not available due to lack of data!!!";
                 document.getElementById('genotype_summary_table_div').appendChild(p_tag);
+                var p_tag = document.createElement('p');
+                p_tag.innerHTML = summaryPhenotype + " summary figure is not available due to lack of data!!!";
+                document.getElementById('improvement_status_summary_figure_div').appendChild(p_tag);
             }
         });
     } else {
         document.getElementById('genotype_figure_div').innerText="";
         document.getElementById('genotype_summary_table_div').innerHTML="";
+        document.getElementById('improvement_status_summary_figure_div').innerHTML="";
         var p_tag = document.createElement('p');
         p_tag.innerHTML = "Genotype distribution figure is not available due to lack of data!!!";
         document.getElementById('genotype_figure_div').appendChild(p_tag);
         var p_tag = document.createElement('p');
         p_tag.innerHTML = "Genotype summary table is not available due to lack of data!!!";
         document.getElementById('genotype_summary_table_div').appendChild(p_tag);
+        var p_tag = document.createElement('p');
+        p_tag.innerHTML = summaryPhenotype + " summary figure is not available due to lack of data!!!";
+        document.getElementById('improvement_status_summary_figure_div').appendChild(p_tag);
     }
 
 </script>
