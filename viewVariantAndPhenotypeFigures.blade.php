@@ -88,6 +88,7 @@ $phenotype = $info['phenotype'];
                 if (res && phenotype) {
 
                     document.getElementById("genotype_figure_div").style.minHeight = "800px";
+                    document.getElementById("improvement_status_summary_figure_div").style.minHeight = "800px";
 
                     // Summarize data
                     var result_dict = summarizeQueriedData(

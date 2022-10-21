@@ -331,15 +331,34 @@ function plotFigure(jsonObject, keyColumn, title, divID) {
         // Create layout
         var layout = {
             title: title,
+            font: {
+                size: 20
+            },
             xaxis: {
                 title: {
                     text: xAxisTitle
+                },
+                titlefont: {
+                    size: 20
+                },
+                showticklabels: true,
+                tickangle: 'auto',
+                tickfont: {
+                    size: 18
                 },
                 zeroline: false
             },
             yaxis: {
                 title: {
                     text: yAxisTitle
+                },
+                titlefont: {
+                    size: 20
+                },
+                showticklabels: true,
+                tickangle: 'auto',
+                tickfont: {
+                    size: 18
                 },
                 fixedrange: true,
                 zeroline: false
@@ -410,16 +429,35 @@ function plotFigure(jsonObject, keyColumn, title, divID) {
         // Create layout
         var layout = {
             title: title,
+            font: {
+                size: 20
+            },
             barmode: 'group',
             xaxis: {
                 title: {
                     text: xAxisTitle
+                },
+                titlefont: {
+                    size: 20
+                },
+                showticklabels: true,
+                tickangle: 'auto',
+                tickfont: {
+                    size: 18
                 },
                 fixedrange: true
             },
             yaxis: {
                 title: {
                     text: yAxisTitle
+                },
+                titlefont: {
+                    size: 20
+                },
+                showticklabels: true,
+                tickangle: 'auto',
+                tickfont: {
+                    size: 18
                 }
             }
         };
